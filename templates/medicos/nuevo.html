@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Médico - Sistema Médico{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="fas fa-user-md me-2"></i>Nuevo Médico
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{{ url_for('medicos') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-edit me-2"></i>Información del Médico
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="medicoForm">
+                        <div class="row">
+                            <!-- Información Personal -->
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-user me-2"></i>Información Personal
+                                </h6>
+                                
+                                <div class="mb-3">
+                                    <label for="dni" class="form-label">DNI *</label>
+                                    <input type="text" class="form-control" id="dni" name="dni" required 
+                                           pattern="[0-9]{8}" maxlength="8" placeholder="12345678">
+                                    <div class="form-text">Ingrese el DNI sin puntos ni espacios</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="nombre" class="form-label">Nombre *</label>
+                                    <input type="text" class="form-control" id="nombre" name="nombre" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="apellido" class="form-label">Apellido *</label>
+                                    <input type="text" class="form-control" id="apellido" name="apellido" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="especialidad" class="form-label">Especialidad *</label>
+                                    <select class="form-select" id="especialidad" name="especialidad" required>
+                                        <option value="">Seleccione una especialidad...</option>
+                                        <option value="Cardiología">Cardiología</option>
+                                        <option value="Dermatología">Dermatología</option>
+                                        <option value="Endocrinología">Endocrinología</option>
+                                        <option value="Gastroenterología">Gastroenterología</option>
+                                        <option value="Ginecología">Ginecología</option>
+                                        <option value="Neurología">Neurología</option>
+                                        <option value="Oftalmología">Oftalmología</option>
+                                        <option value="Ortopedia">Ortopedia</option>
+                                        <option value="Pediatría">Pediatría</option>
+                                        <option value="Psiquiatría">Psiquiatría</option>
+                                        <option value="Traumatología">Traumatología</option>
+                                        <option value="Urología">Urología</option>
+                                        <option value="Medicina General">Medicina General</option>
+                                        <option value="Cirugía General">Cirugía General</option>
+                                        <option value="Anestesiología">Anestesiología</option>
+                                        <option value="Radiología">Radiología</option>
+                                        <option value="Patología">Patología</option>
+                                        <option value="Otra">Otra</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3" id="otraEspecialidadDiv" style="display: none;">
+                                    <label for="otra_especialidad" class="form-label">Especificar Especialidad</label>
+                                    <input type="text" class="form-control" id="otra_especialidad" name="otra_especialidad">
+                                </div>
+                            </div>
+
+                            <!-- Información de Contacto -->
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-address-book me-2"></i>Información de Contacto
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label for="telefono" class="form-label">Teléfono *</label>
+                                    <input type="tel" class="form-control" id="telefono" name="telefono" required
+                                           placeholder="+54 9 11 1234-5678">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email *</label>
+                                    <input type="email" class="form-control" id="email" name="email" required
+                                           placeholder="medico@email.com">
+                                </div>
+
+                                <!-- Información Profesional -->
+                                <h6 class="text-primary mb-3 mt-4">
+                                    <i class="fas fa-graduation-cap me-2"></i>Información Profesional
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label for="matricula" class="form-label">Número de Matrícula</label>
+                                    <input type="text" class="form-control" id="matricula" name="matricula" 
+                                           placeholder="MP-12345">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="universidad" class="form-label">Universidad de Egreso</label>
+                                    <input type="text" class="form-control" id="universidad" name="universidad" 
+                                           placeholder="Universidad de Buenos Aires">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="anio_egreso" class="form-label">Año de Egreso</label>
+                                    <input type="number" class="form-control" id="anio_egreso" name="anio_egreso" 
+                                           min="1950" max="2030" placeholder="2010">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="horarios_atencion" class="form-label">Horarios de Atención</label>
+                                    <textarea class="form-control" id="horarios_atencion" name="horarios_atencion" rows="2" 
+                                              placeholder="Lunes a Viernes: 9:00 - 17:00"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="limpiarFormulario()">
+                                        <i class="fas fa-eraser me-2"></i>Limpiar
+                                    </button>
+                                    <a href="{{ url_for('medicos') }}" class="btn btn-outline-danger">
+                                        <i class="fas fa-times me-2"></i>Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Guardar Médico
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Mostrar/ocultar campo de otra especialidad
+document.getElementById('especialidad').addEventListener('change', function() {
+    const otraEspecialidadDiv = document.getElementById('otraEspecialidadDiv');
+    if (this.value === 'Otra') {
+        otraEspecialidadDiv.style.display = 'block';
+        document.getElementById('otra_especialidad').required = true;
+    } else {
+        otraEspecialidadDiv.style.display = 'none';
+        document.getElementById('otra_especialidad').required = false;
+    }
+});
+
+// Validación del formulario
+document.getElementById('medicoForm').addEventListener('submit', function(e) {
+    const dni = document.getElementById('dni').value;
+    const nombre = document.getElementById('nombre').value;
+    const apellido = document.getElementById('apellido').value;
+    const especialidad = document.getElementById('especialidad').value;
+    const telefono = document.getElementById('telefono').value;
+    const email = document.getElementById('email').value;
+
+    // Validar DNI
+    if (!/^\d{8}$/.test(dni)) {
+        alert('El DNI debe tener exactamente 8 dígitos numéricos');
+        e.preventDefault();
+        return;
+    }
+
+    // Validar nombre y apellido
+    if (nombre.trim().length < 2) {
+        alert('El nombre debe tener al menos 2 caracteres');
+        e.preventDefault();
+        return;
+    }
+
+    if (apellido.trim().length < 2) {
+        alert('El apellido debe tener al menos 2 caracteres');
+        e.preventDefault();
+        return;
+    }
+
+    // Validar especialidad
+    if (!especialidad) {
+        alert('Debe seleccionar una especialidad');
+        e.preventDefault();
+        return;
+    }
+
+    if (especialidad === 'Otra' && !document.getElementById('otra_especialidad').value.trim()) {
+        alert('Debe especificar la especialidad');
+        e.preventDefault();
+        return;
+    }
+
+    // Validar teléfono
+    if (!telefono.trim()) {
+        alert('El teléfono es obligatorio');
+        e.preventDefault();
+        return;
+    }
+
+    // Validar email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('El email no tiene un formato válido');
+        e.preventDefault();
+        return;
+    }
+});
+
+// Validación en tiempo real del DNI
+document.getElementById('dni').addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g, ''); // Solo números
+    if (this.value.length > 8) {
+        this.value = this.value.slice(0, 8);
+    }
+});
+
+// Validación en tiempo real del teléfono
+document.getElementById('telefono').addEventListener('input', function() {
+    this.value = this.value.replace(/[^\d\s\-\+\(\)]/g, ''); // Solo números, espacios, guiones, paréntesis y +
+});
+
+// Validación del año de egreso
+document.getElementById('anio_egreso').addEventListener('input', function() {
+    const anio = parseInt(this.value);
+    const anioActual = new Date().getFullYear();
+    
+    if (anio < 1950 || anio > anioActual) {
+        this.setCustomValidity('El año debe estar entre 1950 y ' + anioActual);
+    } else {
+        this.setCustomValidity('');
+    }
+});
+
+// Función para limpiar el formulario
+function limpiarFormulario() {
+    if (confirm('¿Está seguro de que desea limpiar todos los campos?')) {
+        document.getElementById('medicoForm').reset();
+        document.getElementById('otraEspecialidadDiv').style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

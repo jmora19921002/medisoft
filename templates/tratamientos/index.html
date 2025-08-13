@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}Tratamientos - Medisoft{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-heartbeat text-primary me-2"></i>Tratamientos</h2>
+        <a href="{{ url_for('nuevo_tratamiento') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Nuevo Tratamiento
+        </a>
+    </div>
+
+    <!-- Filtros y búsqueda -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="filtroEstado" class="form-label">Estado</label>
+                    <select class="form-select" id="filtroEstado">
+                        <option value="">Todos los estados</option>
+                        <option value="activo">Activo</option>
+                        <option value="completado">Completado</option>
+                        <option value="suspendido">Suspendido</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="filtroPaciente" class="form-label">Paciente</label>
+                    <input type="text" class="form-control" id="filtroPaciente" placeholder="Buscar por paciente...">
+                </div>
+                <div class="col-md-3">
+                    <label for="filtroMedico" class="form-label">Médico</label>
+                    <input type="text" class="form-control" id="filtroMedico" placeholder="Buscar por médico...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <button type="button" class="btn btn-outline-secondary" id="btnLimpiarFiltros">
+                            <i class="fas fa-times me-2"></i>Limpiar Filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de tratamientos -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Lista de Tratamientos</h5>
+        </div>
+        <div class="card-body">
+            {% if tratamientos %}
+            <div class="table-responsive">
+                <table class="table table-hover" id="tablaTratamientos">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Paciente</th>
+                            <th>Médico</th>
+                            <th>Enfermera</th>
+                            <th>Fecha Inicio</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tratamiento in tratamientos %}
+                        <tr>
+                            <td><span class="badge bg-secondary">#{{ tratamiento.id }}</span></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-user-injured text-primary me-2"></i>
+                                    <div>
+                                        <strong>{{ tratamiento.paciente.apellido }}, {{ tratamiento.paciente.nombre }}</strong>
+                                        <br><small class="text-muted">DNI: {{ tratamiento.paciente.dni }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-user-md text-success me-2"></i>
+                                    <div>
+                                        <strong>Dr. {{ tratamiento.medico.apellido }}</strong>
+                                        <br><small class="text-muted">{{ tratamiento.medico.especialidad }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-user-nurse text-info me-2"></i>
+                                    <div>
+                                        <strong>{{ tratamiento.enfermera.apellido }}, {{ tratamiento.enfermera.nombre }}</strong>
+                                        <br><small class="text-muted">{{ tratamiento.enfermera.especialidad or 'Sin especialidad' }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <i class="fas fa-calendar text-warning me-2"></i>
+                                {{ tratamiento.fecha_inicio.strftime('%d/%m/%Y %H:%M') }}
+                            </td>
+                            <td>
+                                {% if tratamiento.estado == 'activo' %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% elif tratamiento.estado == 'completado' %}
+                                    <span class="badge bg-info">Completado</span>
+                                {% elif tratamiento.estado == 'suspendido' %}
+                                    <span class="badge bg-warning">Suspendido</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                            data-bs-toggle="modal" data-bs-target="#modalDetalle{{ tratamiento.id }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-warning" 
+                                            onclick="editarTratamiento({{ tratamiento.id }})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            onclick="cambiarEstado({{ tratamiento.id }})">
+                                        <i class="fas fa-exchange-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-heartbeat fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No hay tratamientos registrados</h5>
+                <p class="text-muted">Comience registrando un nuevo tratamiento</p>
+                <a href="{{ url_for('nuevo_tratamiento') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Registrar Tratamiento
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modales de detalle -->
+{% for tratamiento in tratamientos %}
+<div class="modal fade" id="modalDetalle{{ tratamiento.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-heartbeat text-primary me-2"></i>Detalle del Tratamiento #{{ tratamiento.id }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-user-injured me-2"></i>Paciente</h6>
+                        <p><strong>{{ tratamiento.paciente.apellido }}, {{ tratamiento.paciente.nombre }}</strong><br>
+                        DNI: {{ tratamiento.paciente.dni }}<br>
+                        Tel: {{ tratamiento.paciente.telefono or 'No especificado' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-user-md me-2"></i>Médico</h6>
+                        <p><strong>Dr. {{ tratamiento.medico.apellido }}, {{ tratamiento.medico.nombre }}</strong><br>
+                        Especialidad: {{ tratamiento.medico.especialidad }}</p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-user-nurse me-2"></i>Enfermera</h6>
+                        <p><strong>{{ tratamiento.enfermera.apellido }}, {{ tratamiento.enfermera.nombre }}</strong><br>
+                        Especialidad: {{ tratamiento.enfermera.especialidad or 'No especificada' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-calendar me-2"></i>Fechas</h6>
+                        <p><strong>Inicio:</strong> {{ tratamiento.fecha_inicio.strftime('%d/%m/%Y %H:%M') }}<br>
+                        {% if tratamiento.fecha_fin %}
+                        <strong>Fin:</strong> {{ tratamiento.fecha_fin.strftime('%d/%m/%Y %H:%M') }}
+                        {% else %}
+                        <strong>Fin:</strong> <span class="text-muted">En curso</span>
+                        {% endif %}</p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-pills me-2"></i>Medicamentos</h6>
+                        {% if tratamiento.medicamentos_suministrados %}
+                            {% set medicamentos = tratamiento.medicamentos_suministrados|from_json %}
+                            {% if medicamentos %}
+                                <div class="medicamentos-list">
+                                    {% for medicamento in medicamentos %}
+                                    <div class="medicamento-item border rounded p-2 mb-2">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <strong class="text-primary">
+                                                    {% for med in medicamentos_list %}
+                                                        {% if med.id|string == medicamento.id %}
+                                                            {{ med.nombre }}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </strong>
+                                                <br>
+                                                <small class="text-muted">
+                                                    <strong>Dosis:</strong> {{ medicamento.dosis }}<br>
+                                                    <strong>Frecuencia:</strong> {{ medicamento.frecuencia }}<br>
+                                                    <strong>Forma:</strong> {{ medicamento.forma_suministro }}<br>
+                                                    <strong>Estatus:</strong> 
+                                                    {% if medicamento.estatus == 'pendiente' %}
+                                                        <span class="badge bg-warning">Pendiente</span>
+                                                    {% elif medicamento.estatus == 'suministrado' %}
+                                                        <span class="badge bg-success">Suministrado</span>
+                                                    {% elif medicamento.estatus == 'cancelado' %}
+                                                        <span class="badge bg-danger">Cancelado</span>
+                                                    {% endif %}
+                                                </small>
+                                                {% if medicamento.comentarios %}
+                                                <br>
+                                                <small class="text-info">
+                                                    <strong>Comentarios:</strong> {{ medicamento.comentarios }}
+                                                </small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No especificados</p>
+                            {% endif %}
+                        {% else %}
+                            <p class="text-muted">No especificados</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-tools me-2"></i>Instrumentos</h6>
+                        <p>{{ tratamiento.instrumentos_utilizados or 'No especificados' }}</p>
+                    </div>
+                </div>
+                {% if tratamiento.observaciones %}
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <h6><i class="fas fa-sticky-note me-2"></i>Observaciones</h6>
+                        <p>{{ tratamiento.observaciones }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-warning" onclick="editarTratamiento({{ tratamiento.id }})">
+                    <i class="fas fa-edit me-2"></i>Editar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block styles %}
+<style>
+.medicamentos-list .medicamento-item {
+    background-color: #f8f9fa;
+    border-left: 4px solid #007bff !important;
+}
+
+.medicamentos-list .medicamento-item:hover {
+    background-color: #e9ecef;
+}
+
+.medicamentos-list .medicamento-item .badge {
+    font-size: 0.75em;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filtros
+    const filtroEstado = document.getElementById('filtroEstado');
+    const filtroPaciente = document.getElementById('filtroPaciente');
+    const filtroMedico = document.getElementById('filtroMedico');
+    const btnLimpiarFiltros = document.getElementById('btnLimpiarFiltros');
+    const tabla = document.getElementById('tablaTratamientos');
+
+    function aplicarFiltros() {
+        const estado = filtroEstado.value.toLowerCase();
+        const paciente = filtroPaciente.value.toLowerCase();
+        const medico = filtroMedico.value.toLowerCase();
+
+        const filas = tabla.querySelectorAll('tbody tr');
+        filas.forEach(fila => {
+            const textoEstado = fila.querySelector('td:nth-child(6)').textContent.toLowerCase();
+            const textoPaciente = fila.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const textoMedico = fila.querySelector('td:nth-child(3)').textContent.toLowerCase();
+
+            const cumpleEstado = !estado || textoEstado.includes(estado);
+            const cumplePaciente = !paciente || textoPaciente.includes(paciente);
+            const cumpleMedico = !medico || textoMedico.includes(medico);
+
+            fila.style.display = (cumpleEstado && cumplePaciente && cumpleMedico) ? '' : 'none';
+        });
+    }
+
+    filtroEstado.addEventListener('change', aplicarFiltros);
+    filtroPaciente.addEventListener('input', aplicarFiltros);
+    filtroMedico.addEventListener('input', aplicarFiltros);
+
+    btnLimpiarFiltros.addEventListener('click', function() {
+        filtroEstado.value = '';
+        filtroPaciente.value = '';
+        filtroMedico.value = '';
+        aplicarFiltros();
+    });
+});
+
+function editarTratamiento(id) {
+    // Redirigir a la página de edición
+    window.location.href = `/tratamientos/editar/${id}`;
+}
+
+function cambiarEstado(id) {
+    const nuevoEstado = prompt('Ingrese el nuevo estado (activo/completado/suspendido):');
+    if (nuevoEstado && ['activo', 'completado', 'suspendido'].includes(nuevoEstado.toLowerCase())) {
+        // Aquí se podría hacer una llamada AJAX para actualizar el estado
+        alert('Estado actualizado a: ' + nuevoEstado);
+        location.reload();
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Bioanalistas{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h3>Bioanalistas</h3>
+    <a href="{{ url_for('nuevo_bioanalista') }}" class="btn btn-primary mb-3"><i class="fas fa-plus"></i> Nuevo Bioanalista</a>
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for b in bioanalistas %}
+            <tr>
+                <td>{{ b.nombre }}</td>
+                <td>{{ b.apellido }}</td>
+                <td>{{ b.email }}</td>
+                <td>{{ b.telefono }}</td>
+                <td>
+                    <a href="{{ url_for('editar_bioanalista', id=b.id) }}" class="btn btn-sm btn-warning">Editar</a>
+                    <form method="POST" action="{{ url_for('eliminar_bioanalista', id=b.id) }}" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este bioanalista?')">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

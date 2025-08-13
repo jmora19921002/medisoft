@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block title %}Accesos Directos{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-star me-2"></i>Mis Accesos Directos</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevoAccesoDirectoModal">
+            <i class="fas fa-plus me-1"></i>Nuevo Acceso Directo
+        </button>
+    </div>
+
+    {% if accesos %}
+    <div class="row">
+        {% for acceso in accesos %}
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="{{ acceso.icono }} fa-2x mb-3"></i>
+                    <h5 class="card-title">{{ acceso.nombre }}</h5>
+                    <div class="mt-3">
+                        <a href="{{ acceso.url }}" class="btn btn-primary btn-sm me-2">Ir</a>
+                        <button class="btn btn-outline-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#editarAccesoDirectoModal{{ acceso.id }}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <form method="POST" action="{{ url_for('eliminar_acceso_directo', id=acceso.id) }}" style="display:inline;" onsubmit="return confirm('¿Seguro que desea eliminar este acceso directo?');">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">
+        <i class="fas fa-info-circle me-2"></i>No hay accesos directos configurados.
+    </div>
+    {% endif %}
+</div>
+
+<!-- Nuevo Acceso Directo Modal -->
+<div class="modal fade" id="nuevoAccesoDirectoModal" tabindex="-1" aria-labelledby="nuevoAccesoDirectoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="nuevoAccesoDirectoModalLabel">Nuevo Acceso Directo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre *</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="url" class="form-label">URL *</label>
+                        <input type="text" class="form-control" id="url" name="url" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="icono" class="form-label">Ícono</label>
+                        <input type="text" class="form-control" id="icono" name="icono" value="fas fa-link">
+                        <small class="form-text text-muted">Puedes usar cualquier clase de Font Awesome</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="orden" class="form-label">Orden</label>
+                        <input type="number" class="form-control" id="orden" name="orden" value="0">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear Acceso Directo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Editar Acceso Directo Modals -->
+{% for acceso in accesos %}
+<div class="modal fade" id="editarAccesoDirectoModal{{ acceso.id }}" tabindex="-1" aria-labelledby="editarAccesoDirectoModalLabel{{ acceso.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarAccesoDirectoModalLabel{{ acceso.id }}">Editar Acceso Directo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('editar_acceso_directo', id=acceso.id) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nombre_{{ acceso.id }}" class="form-label">Nombre *</label>
+                        <input type="text" class="form-control" id="nombre_{{ acceso.id }}" name="nombre" value="{{ acceso.nombre }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="url_{{ acceso.id }}" class="form-label">URL *</label>
+                        <input type="text" class="form-control" id="url_{{ acceso.id }}" name="url" value="{{ acceso.url }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="icono_{{ acceso.id }}" class="form-label">Ícono</label>
+                        <input type="text" class="form-control" id="icono_{{ acceso.id }}" name="icono" value="{{ acceso.icono }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="orden_{{ acceso.id }}" class="form-label">Orden</label>
+                        <input type="number" class="form-control" id="orden_{{ acceso.id }}" name="orden" value="{{ acceso.orden }}">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

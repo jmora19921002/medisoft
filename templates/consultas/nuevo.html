@@ -1,0 +1,1495 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2"><i class="fas fa-stethoscope me-2"></i>Nueva Consulta Médica</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{{ url_for('consultas') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver a Consultas
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Información de la Consulta</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="consultaForm" class="needs-validation" novalidate onsubmit="return prepararFormulario()">
+                        <div class="row">
+                            <!-- Selección de Paciente -->
+                            <div class="col-md-6 mb-3">
+                                <label for="paciente_id" class="form-label">
+                                    <i class="fas fa-user-injured me-2"></i>Paciente *
+                                </label>
+                                <select class="form-select" id="paciente_id" name="paciente_id" required>
+                                    <option value="">Seleccionar paciente...</option>
+                                    {% for paciente in pacientes %}
+                                    <option value="{{ paciente.id }}">
+                                        {{ paciente.nombre }} {{ paciente.apellido }} - DNI: {{ paciente.dni }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">
+                                    Por favor selecciona un paciente.
+                                </div>
+                            </div>
+
+                            <!-- Selección de Médico -->
+                            <div class="col-md-6 mb-3">
+                                <label for="medico_id" class="form-label">
+                                    <i class="fas fa-user-md me-2"></i>Médico Atendiente *
+                                </label>
+                                <select class="form-select" id="medico_id" name="medico_id" required>
+                                    <option value="">Seleccionar médico...</option>
+                                    {% for medico in medicos %}
+                                    <option value="{{ medico.id }}">
+                                        Dr. {{ medico.nombre }} {{ medico.apellido }} - {{ medico.especialidad }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">
+                                    Por favor selecciona un médico.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Motivo de Consulta -->
+                        <div class="mb-3">
+                            <label for="motivo" class="form-label">
+                                <i class="fas fa-question-circle me-2"></i>Motivo de la Consulta *
+                            </label>
+                            <textarea class="form-control" id="motivo" name="motivo" rows="3" 
+                                      placeholder="Describa el motivo principal de la consulta..." required></textarea>
+                            <div class="invalid-feedback">
+                                Por favor describe el motivo de la consulta.
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Exámenes Realizados -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-flask me-2"></i>Exámenes Realizados
+                                </label>
+                                <div class="d-grid">
+                                    <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#modalAdicionarExamen">
+                                        <i class="fas fa-plus me-2"></i>Agregar Exámenes
+                                    </button>
+                                </div>
+                                <!-- Lista de exámenes seleccionados -->
+                                <div id="examenesSeleccionadosList" class="mt-2">
+                                    <small class="text-muted">No se han seleccionado exámenes</small>
+                                </div>
+                            </div>
+
+                            <!-- Tratamiento Aplicado -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-heartbeat me-2"></i>Tratamiento Aplicado
+                                </label>
+                                <div class="d-grid">
+                                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalTratamientoConsulta">
+                                        <i class="fas fa-plus me-2"></i>Agregar Tratamiento
+                                    </button>
+                                </div>
+                                <div id="tratamientosSeleccionadosList" class="mt-2">
+                                    <small class="text-muted">No se han seleccionado tratamientos</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Observaciones -->
+                            <div class="col-md-6 mb-3">
+                                <label for="observaciones" class="form-label">
+                                    <i class="fas fa-clipboard me-2"></i>Observaciones
+                                </label>
+                                <textarea class="form-control" id="observaciones" name="observaciones" rows="3"
+                                          placeholder="Observaciones adicionales del médico..."></textarea>
+                            </div>
+
+                            <!-- Órdenes Médicas -->
+                            <div class="col-md-6 mb-3">
+                                <label for="ordenes_medicas" class="form-label">
+                                    <i class="fas fa-prescription me-2"></i>Órdenes Médicas
+                                </label>
+                                <textarea class="form-control" id="ordenes_medicas" name="ordenes_medicas" rows="3"
+                                          placeholder="Órdenes médicas, recetas, indicaciones..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <div class="d-flex justify-content-center flex-wrap gap-2">
+                                    <button type="submit" class="btn btn-success btn-lg action-btn">
+                                        <i class="fas fa-save me-2"></i>Guardar Consulta
+                                    </button>
+                                    <a href="{{ url_for('consultas') }}" class="btn btn-secondary btn-lg action-btn">
+                                        <i class="fas fa-times me-2"></i>Cancelar
+                                    </a>
+                                    <button type="button" class="btn btn-primary btn-lg action-btn" onclick="imprimirReceta()" id="btnImprimirReceta" disabled>
+                                        <i class="fas fa-print me-2"></i>Imprimir Receta
+                                    </button>
+                                    <button type="button" class="btn btn-info btn-lg action-btn" onclick="imprimirOrdenExamenes()" id="btnImprimirOrdenExamenes" disabled>
+                                        <i class="fas fa-print me-2"></i>Imprimir Orden de Exámenes
+                                    </button>
+                                    <form method="POST" id="formEnviarReceta" action="{{ url_for('enviar_receta', paciente_id=0) }}" style="display:inline;">
+                                        <input type="hidden" name="nombre_paciente" id="nombre_paciente_receta" value="">
+                                        <input type="hidden" name="tratamientos_json" id="tratamientos_json_receta" value="">
+                                        <input type="hidden" name="instrucciones" id="instrucciones_receta" value="{{ ordenes_medicas if ordenes_medicas else '' }}">
+                                        <input type="hidden" name="email" id="email_receta" value="">
+                                        <button type="button" class="btn btn-outline-primary btn-lg action-btn" id="btnEnviarReceta" disabled onclick="enviarRecetaPorCorreo()">
+                                            <i class="fas fa-envelope me-2"></i>Enviar Receta por Correo
+                                        </button>
+                                    </form>
+                                    <form method="POST" id="formEnviarOrdenExamenes" action="{{ url_for('enviar_orden_examenes', paciente_id=0) }}" style="display:inline;">
+                                        <input type="hidden" name="nombre_paciente" id="nombre_paciente_examenes" value="">
+                                        <input type="hidden" name="examenes_json" id="examenes_json_examenes" value="">
+                                        <input type="hidden" name="instrucciones" id="instrucciones_examenes" value="{{ ordenes_medicas if ordenes_medicas else '' }}">
+                                        <input type="hidden" name="email" id="email_examenes" value="">
+                                        <button type="button" class="btn btn-outline-info btn-lg action-btn" id="btnEnviarOrdenExamenes" disabled onclick="enviarOrdenExamenesPorCorreo()">
+                                            <i class="fas fa-envelope me-2"></i>Orden de Examen
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+<style>
+.action-btn {
+    min-width: 180px;
+    min-height: 54px;
+    max-width: 220px;
+    max-height: 54px;
+    border-radius: 8px !important;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0 !important;
+}
+@media (max-width: 768px) {
+    .action-btn {
+        min-width: 120px;
+        font-size: 0.95rem;
+        padding: 0.5rem 0.5rem;
+    }
+}
+</style>
+<script>
+// Serializa la lista de tratamientos seleccionados a JSON antes de enviar por correo
+function prepararTratamientosParaCorreo() {
+    const inputTratamientos = document.getElementById('tratamientos_json_receta');
+    inputTratamientos.value = JSON.stringify(tratamientosSeleccionados);
+}
+
+// Serializa la lista de exámenes seleccionados a JSON antes de enviar por correo
+function prepararExamenesParaCorreo() {
+    const inputExamenes = document.getElementById('examenes_json_examenes');
+    inputExamenes.value = JSON.stringify(examenesSeleccionados);
+}
+
+// Enviar receta por correo usando AJAX para no recargar la pantalla
+function enviarRecetaPorCorreo() {
+    prepararTratamientosParaCorreo();
+    const form = document.getElementById('formEnviarReceta');
+    const formData = new FormData(form);
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Receta enviada por correo electrónico.');
+        } else {
+            alert('Error al enviar el correo: ' + (data.error || 'Error desconocido.'));
+        }
+    })
+    .catch(() => alert('Error al enviar el correo.'));
+}
+
+// Enviar orden de exámenes por correo usando AJAX para no recargar la pantalla
+function enviarOrdenExamenesPorCorreo() {
+    prepararExamenesParaCorreo();
+    const form = document.getElementById('formEnviarOrdenExamenes');
+    const formData = new FormData(form);
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Orden de exámenes enviada por correo electrónico.');
+        } else {
+            alert('Error al enviar el correo: ' + (data.error || 'Error desconocido.'));
+        }
+    })
+    .catch(() => alert('Error al enviar el correo.'));
+}
+// Diccionario de pacientes con email y nombre completo
+{% if pacientes_dict is defined %}
+const pacientesData = {{ pacientes_dict|tojson|safe }};
+{% else %}
+const pacientesData = {};
+{% endif %}
+
+    function actualizarCamposCorreo() {
+        const pacienteId = document.getElementById('paciente_id').value;
+        const recetaEmail = document.getElementById('email_receta');
+        const examenesEmail = document.getElementById('email_examenes');
+        const nombreReceta = document.getElementById('nombre_paciente_receta');
+        const nombreExamenes = document.getElementById('nombre_paciente_examenes');
+        const btnReceta = document.getElementById('btnEnviarReceta');
+        const btnExamenes = document.getElementById('btnEnviarOrdenExamenes');
+        if (pacienteId && pacientesData[pacienteId]) {
+            recetaEmail.value = pacientesData[pacienteId].email;
+            examenesEmail.value = pacientesData[pacienteId].email;
+            nombreReceta.value = pacientesData[pacienteId].nombre;
+            nombreExamenes.value = pacientesData[pacienteId].nombre;
+            btnReceta.disabled = !pacientesData[pacienteId].email;
+            btnExamenes.disabled = !pacientesData[pacienteId].email;
+        } else {
+            recetaEmail.value = '';
+            examenesEmail.value = '';
+            nombreReceta.value = '';
+            nombreExamenes.value = '';
+            btnReceta.disabled = true;
+            btnExamenes.disabled = true;
+        }
+    }
+    document.getElementById('paciente_id').addEventListener('change', actualizarCamposCorreo);
+    window.addEventListener('DOMContentLoaded', actualizarCamposCorreo);
+// Modal y lógica para enviar orden de exámenes a laboratorio tras guardar consulta
+function mostrarModalOrdenLaboratorio(callback) {
+    let modalHtml = `
+    <div class="modal fade" id="modalOrdenLaboratorio" tabindex="-1" aria-labelledby="modalOrdenLaboratorioLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-warning text-dark">
+            <h5 class="modal-title" id="modalOrdenLaboratorioLabel"><i class="fas fa-flask me-2"></i>Enviar orden de exámenes a laboratorio</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            ¿Deseas enviar la orden de exámenes al laboratorio de la clínica?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+            <button type="button" class="btn btn-success" id="btnConfirmarOrdenLab">Sí, enviar</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+    if (!document.getElementById('modalOrdenLaboratorio')) {
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+    var modal = new bootstrap.Modal(document.getElementById('modalOrdenLaboratorio'));
+    document.getElementById('btnConfirmarOrdenLab').onclick = function() {
+        modal.hide();
+        if (callback) callback();
+    };
+    // Redirigir al cancelar (No)
+    document.querySelector('#modalOrdenLaboratorio .btn-secondary').onclick = function() {
+        modal.hide();
+        alert('Consulta guardada exitosamente.');
+        window.location.href = '/consultas';
+    };
+    modal.show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('consultaForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (typeof examenesSeleccionados !== 'undefined' && examenesSeleccionados.length > 0) {
+                e.preventDefault();
+                const formData = new FormData(form);
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        mostrarModalOrdenLaboratorio(function() {
+                            fetch('/orden_laboratorio', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                                body: JSON.stringify({ consulta_id: data.consulta_id, examenes: examenesSeleccionados })
+                            })
+                            .then(resp => resp.json())
+                            .then(res => {
+                                if (res.success) {
+                                    alert('Orden de laboratorio creada y enviada correctamente.');
+                                    window.location.href = '/consultas';
+                                } else {
+                                    alert('Error al crear la orden de laboratorio: ' + (res.error || 'Error desconocido.'));
+                                }
+                            });
+                        });
+                    } else {
+                        alert('Error al guardar la consulta: ' + (data.error || 'Error desconocido.'));
+                    }
+                });
+                return false;
+            }
+        });
+    }
+});
+</script>
+                        </div>
+                    </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información Adicional -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información Importante</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Campos Obligatorios:</h6>
+                            <ul class="mb-0">
+                                <li><strong>Paciente:</strong> Selecciona el paciente que consulta</li>
+                                <li><strong>Médico:</strong> Médico que atiende la consulta</li>
+                                <li><strong>Motivo:</strong> Razón principal de la consulta</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Campos Opcionales:</h6>
+                            <ul class="mb-0">
+                                <li><strong>Exámenes:</strong> Usa el botón para agregar exámenes</li>
+                                <li><strong>Tratamiento:</strong> Usa el botón para agregar tratamientos con medicamentos</li>
+                                <li><strong>Observaciones:</strong> Notas adicionales</li>
+                                <li><strong>Órdenes:</strong> Recetas e indicaciones</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Adicionar Exámenes -->
+<div class="modal fade" id="modalAdicionarExamen" tabindex="-1" aria-labelledby="modalAdicionarExamenLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="modalAdicionarExamenLabel">
+                    <i class="fas fa-flask me-2"></i>Agregar Exámenes a la Consulta
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formAdicionarExamen">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="paciente_consulta" class="form-label">Paciente</label>
+                            <select class="form-select" id="paciente_consulta" name="paciente_consulta" required>
+                                <option value="">Seleccionar paciente...</option>
+                                {% for paciente in pacientes %}
+                                <option value="{{ paciente.id }}">
+                                    {{ paciente.nombre }} {{ paciente.apellido }} - DNI: {{ paciente.dni }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="medico_consulta" class="form-label">Médico Solicitante</label>
+                            <select class="form-select" id="medico_consulta" name="medico_consulta" required>
+                                <option value="">Seleccionar médico...</option>
+                                {% for medico in medicos %}
+                                <option value="{{ medico.id }}">
+                                    Dr. {{ medico.nombre }} {{ medico.apellido }} - {{ medico.especialidad }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="motivo_consulta" class="form-label">Motivo de la Consulta</label>
+                        <textarea class="form-control" id="motivo_consulta" name="motivo_consulta" rows="2" 
+                                  placeholder="Motivo de la consulta..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="observaciones_consulta" class="form-label">Observaciones</label>
+                        <textarea class="form-control" id="observaciones_consulta" name="observaciones_consulta" rows="2" 
+                                  placeholder="Observaciones adicionales..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Exámenes Seleccionados</label>
+                        <div id="examenesSeleccionados" class="border rounded p-3 bg-light">
+                            <small class="text-muted">No se han seleccionado exámenes</small>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button type="button" class="btn btn-primary" onclick="abrirSelectorExamen()">
+                            <i class="fas fa-plus me-2"></i>Seleccionar Examen
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="guardarExamenes()">
+                    <i class="fas fa-save me-2"></i>Guardar Exámenes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Selector de Examen -->
+<div class="modal fade" id="modalSelectorExamen" tabindex="-1" aria-labelledby="modalSelectorExamenLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalSelectorExamenLabel">
+                    <i class="fas fa-search me-2"></i>Seleccionar Tipo de Examen
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="filtroExamen" 
+                           placeholder="Buscar tipo de examen..." onkeyup="filtrarTiposExamen()">
+                </div>
+                <div id="treeviewTiposExamen" class="border rounded p-3" style="max-height: 400px; overflow-y: auto;">
+                    <div class="text-center text-muted">
+                        <i class="fas fa-spinner fa-spin me-2"></i>Cargando tipos de examen...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Valores del Examen -->
+<div class="modal fade" id="modalValoresExamen" tabindex="-1" aria-labelledby="modalValoresExamenLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalValoresExamenLabel">
+                    <i class="fas fa-clipboard-list me-2"></i>Valores del Examen
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="detallesExamenSeleccionado">
+                    <!-- Los detalles del examen se cargarán aquí -->
+                </div>
+                <div class="mb-3">
+                    <label for="valoresResultados" class="form-label">Valores/Resultados</label>
+                    <textarea class="form-control" id="valoresResultados" rows="4" 
+                              placeholder="Ingrese los valores o resultados del examen..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="confirmarSeleccionExamen()">
+                    <i class="fas fa-check me-2"></i>Confirmar Selección
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Tratamiento de la Consulta -->
+<div class="modal fade" id="modalTratamientoConsulta" tabindex="-1" aria-labelledby="modalTratamientoConsultaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalTratamientoConsultaLabel">
+                    <i class="fas fa-heartbeat me-2"></i>Agregar Tratamiento a la Consulta
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formTratamientoConsulta">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="paciente_tratamiento" class="form-label">Paciente</label>
+                            <select class="form-select" id="paciente_tratamiento" name="paciente_tratamiento" required>
+                                <option value="">Seleccionar paciente...</option>
+                                {% for paciente in pacientes %}
+                                <option value="{{ paciente.id }}">
+                                    {{ paciente.nombre }} {{ paciente.apellido }} - DNI: {{ paciente.dni }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="medico_tratamiento" class="form-label">Médico Prescriptor</label>
+                            <select class="form-select" id="medico_tratamiento" name="medico_tratamiento" required>
+                                <option value="">Seleccionar médico...</option>
+                                {% for medico in medicos %}
+                                <option value="{{ medico.id }}">
+                                    Dr. {{ medico.nombre }} {{ medico.apellido }} - {{ medico.especialidad }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="motivo_tratamiento" class="form-label">Motivo del Tratamiento</label>
+                        <textarea class="form-control" id="motivo_tratamiento" name="motivo_tratamiento" rows="2" 
+                                  placeholder="Motivo del tratamiento..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="observaciones_tratamiento" class="form-label">Observaciones</label>
+                        <textarea class="form-control" id="observaciones_tratamiento" name="observaciones_tratamiento" rows="2" 
+                                  placeholder="Observaciones adicionales..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Medicamentos del Tratamiento</label>
+                        <div id="medicamentosTratamiento" class="border rounded p-3 bg-light">
+                            <div class="text-center">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="agregarFilaMedicamento()">
+                                    <i class="fas fa-plus me-2"></i>Agregar Medicamento
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Tratamientos Seleccionados</label>
+                        <div id="tratamientosSeleccionados" class="border rounded p-3 bg-light">
+                            <small class="text-muted">No se han seleccionado tratamientos</small>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="guardarTratamiento()">
+                    <i class="fas fa-save me-2"></i>Guardar Tratamiento
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Variables globales
+let examenesSeleccionados = [];
+let examenActual = null;
+let tratamientosSeleccionados = [];
+let medicamentosTratamiento = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('consultaForm');
+    
+    // Validación del formulario
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        
+        form.classList.add('was-validated');
+    });
+
+    // Auto-guardado en localStorage
+    const formFields = ['paciente_id', 'medico_id', 'motivo', 'observaciones', 'ordenes_medicas'];
+    
+    formFields.forEach(fieldName => {
+        const field = document.getElementById(fieldName);
+        if (field) {
+            // Cargar valor guardado
+            const savedValue = localStorage.getItem(`consulta_${fieldName}`);
+            if (savedValue) {
+                field.value = savedValue;
+            }
+            
+            // Guardar valor al cambiar
+            field.addEventListener('input', function() {
+                localStorage.setItem(`consulta_${fieldName}`, this.value);
+            });
+        }
+    });
+
+    // Limpiar localStorage al enviar el formulario
+    form.addEventListener('submit', function() {
+        formFields.forEach(fieldName => {
+            localStorage.removeItem(`consulta_${fieldName}`);
+        });
+    });
+
+    // Sincronizar campos del modal con el formulario principal
+    sincronizarCamposModal();
+    sincronizarCamposTratamiento(); // Sincronizar campos del modal de tratamiento
+});
+
+// Función para sincronizar campos del modal con el formulario principal
+function sincronizarCamposModal() {
+    const pacientePrincipal = document.getElementById('paciente_id');
+    const medicoPrincipal = document.getElementById('medico_id');
+    const motivoPrincipal = document.getElementById('motivo');
+    const observacionesPrincipal = document.getElementById('observaciones');
+    
+    const pacienteModal = document.getElementById('paciente_consulta');
+    const medicoModal = document.getElementById('medico_consulta');
+    const motivoModal = document.getElementById('motivo_consulta');
+    const observacionesModal = document.getElementById('observaciones_consulta');
+    
+    // Sincronizar al abrir el modal
+    document.getElementById('modalAdicionarExamen').addEventListener('show.bs.modal', function() {
+        if (pacientePrincipal.value) {
+            pacienteModal.value = pacientePrincipal.value;
+        }
+        if (medicoPrincipal.value) {
+            medicoModal.value = medicoPrincipal.value;
+        }
+        if (motivoPrincipal.value) {
+            motivoModal.value = motivoPrincipal.value;
+        }
+        if (observacionesPrincipal.value) {
+            observacionesModal.value = observacionesPrincipal.value;
+        }
+    });
+}
+
+// Función para abrir el selector de examen
+function abrirSelectorExamen() {
+    // Validar que se haya seleccionado paciente y médico
+    const paciente = document.getElementById('paciente_consulta').value;
+    const medico = document.getElementById('medico_consulta').value;
+    
+    if (!paciente || !medico) {
+        alert('Por favor selecciona un paciente y un médico antes de continuar.');
+        return;
+    }
+    
+    // Cerrar modal actual y abrir selector
+    const modalAdicionar = bootstrap.Modal.getInstance(document.getElementById('modalAdicionarExamen'));
+    modalAdicionar.hide();
+    
+    // Cargar tipos de examen y abrir selector
+    cargarTiposExamen().then(() => {
+        const modalSelector = new bootstrap.Modal(document.getElementById('modalSelectorExamen'));
+        modalSelector.show();
+    });
+}
+
+// Función para cargar tipos de examen
+async function cargarTiposExamen() {
+    try {
+        const response = await fetch('/examenes/obtener_tipos');
+        const categorias = await response.json();
+        renderizarTreeviewTiposExamen(categorias);
+    } catch (error) {
+        console.error('Error al cargar tipos de examen:', error);
+        document.getElementById('treeviewTiposExamen').innerHTML = 
+            '<div class="alert alert-danger">Error al cargar los tipos de examen</div>';
+    }
+}
+
+// Función para renderizar el treeview de tipos de examen
+function renderizarTreeviewTiposExamen(categorias) {
+    const container = document.getElementById('treeviewTiposExamen');
+    let html = '';
+    
+    for (const [categoria, tipos] of Object.entries(categorias)) {
+        html += `
+            <div class="mb-3">
+                <h6 class="text-primary border-bottom pb-2">
+                    <i class="fas fa-folder me-2"></i>${categoria}
+                </h6>
+                <div class="row">
+        `;
+        
+        tipos.forEach(tipo => {
+            html += `
+                <div class="col-md-6 mb-2">
+                    <div class="card border-0 shadow-sm cursor-pointer" 
+                         onclick="seleccionarTipoExamen('${tipo.nombre}', '${tipo.descripcion}', '${tipo.precio}', '${tipo.tiempo_estimado}', '${tipo.preparacion_requerida}')"
+                         style="cursor: pointer;">
+                        <div class="card-body p-3">
+                            <h6 class="card-title mb-1">${tipo.nombre}</h6>
+                            <p class="card-text small text-muted mb-1">${tipo.descripcion}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-info">$${tipo.precio}</span>
+                                <small class="text-muted">${tipo.tiempo_estimado} días</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+}
+
+// Función para filtrar tipos de examen
+function filtrarTiposExamen() {
+    const filtro = document.getElementById('filtroExamen').value.toLowerCase();
+    const cards = document.querySelectorAll('#treeviewTiposExamen .card');
+    
+    cards.forEach(card => {
+        const nombre = card.querySelector('.card-title').textContent.toLowerCase();
+        const descripcion = card.querySelector('.card-text').textContent.toLowerCase();
+        
+        if (nombre.includes(filtro) || descripcion.includes(filtro)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// Función para seleccionar tipo de examen
+function seleccionarTipoExamen(nombre, descripcion, precio, tiempoEstimado, preparacionRequerida) {
+    examenActual = {
+        nombre: nombre,
+        descripcion: descripcion,
+        precio: precio,
+        tiempoEstimado: tiempoEstimado,
+        preparacionRequerida: preparacionRequerida
+    };
+    
+    // Mostrar detalles en el modal de valores
+    document.getElementById('detallesExamenSeleccionado').innerHTML = `
+        <div class="alert alert-info">
+            <h6><i class="fas fa-flask me-2"></i>${nombre}</h6>
+            <p class="mb-2">${descripcion}</p>
+            <div class="row">
+                <div class="col-6">
+                    <strong>Precio:</strong> $${precio}
+                </div>
+                <div class="col-6">
+                    <strong>Tiempo estimado:</strong> ${tiempoEstimado} días
+                </div>
+            </div>
+            ${preparacionRequerida ? `<div class="mt-2"><strong>Preparación:</strong> ${preparacionRequerida}</div>` : ''}
+        </div>
+    `;
+    
+    // Cerrar selector y abrir modal de valores
+    const modalSelector = bootstrap.Modal.getInstance(document.getElementById('modalSelectorExamen'));
+    modalSelector.hide();
+    
+    const modalValores = new bootstrap.Modal(document.getElementById('modalValoresExamen'));
+    modalValores.show();
+}
+
+// Función para confirmar selección de examen
+function confirmarSeleccionExamen() {
+    const valores = document.getElementById('valoresResultados').value.trim();
+    
+    if (!valores) {
+        alert('Por favor ingresa los valores o resultados del examen.');
+        return;
+    }
+    
+    // Agregar a la lista de exámenes seleccionados
+    examenesSeleccionados.push({
+        tipo: examenActual.nombre,
+        valores: valores,
+        descripcion: examenActual.descripcion,
+        precio: examenActual.precio
+    });
+    
+    // Actualizar la lista visual
+    actualizarListaExamenesSeleccionados();
+    
+    // Limpiar y cerrar modal
+    document.getElementById('valoresResultados').value = '';
+    const modalValores = bootstrap.Modal.getInstance(document.getElementById('modalValoresExamen'));
+    modalValores.hide();
+    
+    // Reabrir modal principal
+    const modalAdicionar = new bootstrap.Modal(document.getElementById('modalAdicionarExamen'));
+    modalAdicionar.show();
+}
+
+// Función para actualizar la lista de exámenes seleccionados
+function actualizarListaExamenesSeleccionados() {
+    const container = document.getElementById('examenesSeleccionados');
+    const containerLista = document.getElementById('examenesSeleccionadosList');
+    
+    if (examenesSeleccionados.length === 0) {
+        container.innerHTML = '<small class="text-muted">No se han seleccionado exámenes</small>';
+        containerLista.innerHTML = '<small class="text-muted">No se han seleccionado exámenes</small>';
+        return;
+    }
+    
+    let html = '';
+    let htmlLista = '';
+    
+    examenesSeleccionados.forEach((examen, index) => {
+        html += `
+            <div class="d-flex justify-content-between align-items-center p-2 border rounded mb-2 bg-white">
+                <div>
+                    <strong>${examen.tipo}</strong>
+                    <br><small class="text-muted">${examen.valores}</small>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="eliminarExamenSeleccionado(${index})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        
+        htmlLista += `
+            <div class="d-flex justify-content-between align-items-center p-2 border rounded mb-2 bg-light">
+                <div>
+                    <strong>${examen.tipo}</strong>
+                    <br><small class="text-muted">${examen.valores}</small>
+                </div>
+                <span class="badge bg-success">✓</span>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    containerLista.innerHTML = htmlLista;
+    
+    // Actualizar estado de botones de impresión
+    actualizarBotonesImpresion();
+}
+
+// Función para eliminar examen seleccionado
+function eliminarExamenSeleccionado(index) {
+    examenesSeleccionados.splice(index, 1);
+    actualizarListaExamenesSeleccionados();
+}
+
+// Función para guardar exámenes
+function guardarExamenes() {
+    if (examenesSeleccionados.length === 0) {
+        alert('No se han seleccionado exámenes para guardar.');
+        return;
+    }
+    
+    // Cerrar modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('modalAdicionarExamen'));
+    modal.hide();
+    
+    // Mostrar mensaje de éxito
+    alert(`Se han agregado ${examenesSeleccionados.length} examen(es) a la consulta.`);
+}
+
+// ===== FUNCIONES PARA TRATAMIENTOS =====
+
+// Función para sincronizar campos del modal de tratamiento con el formulario principal
+function sincronizarCamposTratamiento() {
+    const pacientePrincipal = document.getElementById('paciente_id');
+    const medicoPrincipal = document.getElementById('medico_id');
+    const motivoPrincipal = document.getElementById('motivo');
+    const observacionesPrincipal = document.getElementById('observaciones');
+    
+    const pacienteTratamiento = document.getElementById('paciente_tratamiento');
+    const medicoTratamiento = document.getElementById('medico_tratamiento');
+    const motivoTratamiento = document.getElementById('motivo_tratamiento');
+    const observacionesTratamiento = document.getElementById('observaciones_tratamiento');
+    
+    // Sincronizar al abrir el modal
+    document.getElementById('modalTratamientoConsulta').addEventListener('show.bs.modal', function() {
+        if (pacientePrincipal.value) {
+            pacienteTratamiento.value = pacientePrincipal.value;
+        }
+        if (medicoPrincipal.value) {
+            medicoTratamiento.value = medicoPrincipal.value;
+        }
+        if (motivoPrincipal.value) {
+            motivoTratamiento.value = motivoPrincipal.value;
+        }
+        if (observacionesPrincipal.value) {
+            observacionesTratamiento.value = observacionesPrincipal.value;
+        }
+        
+        // Limpiar medicamentos anteriores
+        medicamentosTratamiento = [];
+        actualizarTablaMedicamentos();
+    });
+}
+
+// Función para agregar fila de medicamento
+function agregarFilaMedicamento() {
+    const medicamentoId = `med_${Date.now()}`;
+    const medicamento = {
+        id: medicamentoId,
+        medicamento_id: '',
+        dosis: '',
+        frecuencia: '',
+        duracion: '',
+        forma_administracion: '',
+        instrucciones: ''
+    };
+    
+    medicamentosTratamiento.push(medicamento);
+    actualizarTablaMedicamentos();
+}
+
+// Función para actualizar la tabla de medicamentos
+function actualizarTablaMedicamentos() {
+    const container = document.getElementById('medicamentosTratamiento');
+    
+    if (medicamentosTratamiento.length === 0) {
+        container.innerHTML = `
+            <div class="text-center">
+                <button type="button" class="btn btn-primary btn-sm" onclick="agregarFilaMedicamento()">
+                    <i class="fas fa-plus me-2"></i>Agregar Medicamento
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Medicamento</th>
+                        <th>Dosis</th>
+                        <th>Frecuencia</th>
+                        <th>Duración</th>
+                        <th>Forma</th>
+                        <th>Estatus</th>
+                        <th>Instrucciones</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    medicamentosTratamiento.forEach((med, index) => {
+        html += `
+            <tr>
+                <td>
+                    <select class="form-select form-select-sm" onchange="actualizarMedicamento(${index}, 'medicamento_id', this.value)">
+                        <option value="">Seleccionar...</option>
+                        {% for medicamento in medicamentos %}
+                        <option value="{{ medicamento.id }}" ${med.medicamento_id == '{{ medicamento.id }}' ? 'selected' : ''}>
+                            {{ medicamento.nombre }} - {{ medicamento.presentacion }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" 
+                           placeholder="Ej: 1 tableta" 
+                           value="${med.dosis}"
+                           onchange="actualizarMedicamento(${index}, 'dosis', this.value)">
+                </td>
+                <td>
+                    <select class="form-select form-select-sm" onchange="actualizarMedicamento(${index}, 'frecuencia', this.value)">
+                        <option value="">Seleccionar...</option>
+                        <option value="Cada 4 horas" ${med.frecuencia == 'Cada 4 horas' ? 'selected' : ''}>Cada 4 horas</option>
+                        <option value="Cada 6 horas" ${med.frecuencia == 'Cada 6 horas' ? 'selected' : ''}>Cada 6 horas</option>
+                        <option value="Cada 8 horas" ${med.frecuencia == 'Cada 8 horas' ? 'selected' : ''}>Cada 8 horas</option>
+                        <option value="Cada 12 horas" ${med.frecuencia == 'Cada 12 horas' ? 'selected' : ''}>Cada 12 horas</option>
+                        <option value="Una vez al día" ${med.frecuencia == 'Una vez al día' ? 'selected' : ''}>Una vez al día</option>
+                        <option value="Dos veces al día" ${med.frecuencia == 'Dos veces al día' ? 'selected' : ''}>Dos veces al día</option>
+                        <option value="Tres veces al día" ${med.frecuencia == 'Tres veces al día' ? 'selected' : ''}>Tres veces al día</option>
+                        <option value="Antes de las comidas" ${med.frecuencia == 'Antes de las comidas' ? 'selected' : ''}>Antes de las comidas</option>
+                        <option value="Después de las comidas" ${med.frecuencia == 'Después de las comidas' ? 'selected' : ''}>Después de las comidas</option>
+                        <option value="Con las comidas" ${med.frecuencia == 'Con las comidas' ? 'selected' : ''}>Con las comidas</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" 
+                           placeholder="Ej: 7 días" 
+                           value="${med.duracion}"
+                           onchange="actualizarMedicamento(${index}, 'duracion', this.value)">
+                </td>
+                <td>
+                    <select class="form-select form-select-sm" onchange="actualizarMedicamento(${index}, 'forma_administracion', this.value)">
+                        <option value="">Seleccionar...</option>
+                        <option value="Oral" ${med.forma_administracion == 'Oral' ? 'selected' : ''}>Oral</option>
+                        <option value="Intravenoso" ${med.forma_administracion == 'Intravenoso' ? 'selected' : ''}>Intravenoso</option>
+                        <option value="Intramuscular" ${med.forma_administracion == 'Intramuscular' ? 'selected' : ''}>Intramuscular</option>
+                        <option value="Subcutáneo" ${med.forma_administracion == 'Subcutáneo' ? 'selected' : ''}>Subcutáneo</option>
+                        <option value="Tópico" ${med.forma_administracion == 'Tópico' ? 'selected' : ''}>Tópico</option>
+                        <option value="Inhalación" ${med.forma_administracion == 'Inhalación' ? 'selected' : ''}>Inhalación</option>
+                        <option value="Rectal" ${med.forma_administracion == 'Rectal' ? 'selected' : ''}>Rectal</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="form-select form-select-sm" onchange="actualizarMedicamento(${index}, 'estatus', this.value)">
+                        <option value="">Seleccionar...</option>
+                        <option value="Activo" ${med.estatus == 'Activo' ? 'selected' : ''}>Activo</option>
+                        <option value="Suspendido" ${med.estatus == 'Suspendido' ? 'selected' : ''}>Suspendido</option>
+                        <option value="Finalizado" ${med.estatus == 'Finalizado' ? 'selected' : ''}>Finalizado</option>
+                    </select>
+                </td>
+                <td>
+                    <textarea class="form-control form-control-sm" rows="2" 
+                              placeholder="Instrucciones especiales..."
+                              onchange="actualizarMedicamento(${index}, 'instrucciones', this.value)">${med.instrucciones}</textarea>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="eliminarMedicamento(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += `
+                </tbody>
+            </table>
+        </div>
+        <div class="text-center mt-2">
+            <button type="button" class="btn btn-primary btn-sm" onclick="agregarFilaMedicamento()">
+                <i class="fas fa-plus me-2"></i>Agregar Medicamento
+            </button>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+// Función para actualizar un medicamento
+function actualizarMedicamento(index, campo, valor) {
+    if (medicamentosTratamiento[index]) {
+        medicamentosTratamiento[index][campo] = valor;
+    }
+}
+
+// Función para eliminar un medicamento
+function eliminarMedicamento(index) {
+    medicamentosTratamiento.splice(index, 1);
+    actualizarTablaMedicamentos();
+}
+
+// Función para guardar el tratamiento
+function guardarTratamiento() {
+    // Validar que se haya seleccionado paciente y médico
+    const paciente = document.getElementById('paciente_tratamiento').value;
+    const medico = document.getElementById('medico_tratamiento').value;
+    
+    if (!paciente || !medico) {
+        alert('Por favor selecciona un paciente y un médico antes de continuar.');
+        return;
+    }
+    
+    // Validar que haya al menos un medicamento
+    if (medicamentosTratamiento.length === 0) {
+        alert('Por favor agrega al menos un medicamento al tratamiento.');
+        return;
+    }
+    
+    // Validar que todos los medicamentos tengan información básica
+    for (let i = 0; i < medicamentosTratamiento.length; i++) {
+        const med = medicamentosTratamiento[i];
+        if (!med.medicamento_id || !med.dosis || !med.frecuencia) {
+            alert(`Por favor completa la información del medicamento ${i + 1} (medicamento, dosis y frecuencia son obligatorios).`);
+            return;
+        }
+    }
+    
+    // Crear el tratamiento
+    const tratamiento = {
+        paciente_id: paciente,
+        medico_id: medico,
+        motivo: document.getElementById('motivo_tratamiento').value,
+        observaciones: document.getElementById('observaciones_tratamiento').value,
+        medicamentos: [...medicamentosTratamiento]
+    };
+    
+    // Agregar a la lista de tratamientos seleccionados
+    tratamientosSeleccionados.push(tratamiento);
+    
+    // Actualizar la lista visual
+    actualizarListaTratamientosSeleccionados();
+    
+    // Cerrar modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('modalTratamientoConsulta'));
+    modal.hide();
+    
+    // Mostrar mensaje de éxito
+    alert('Tratamiento agregado exitosamente a la consulta.');
+}
+
+// Función para actualizar la lista de tratamientos seleccionados
+function actualizarListaTratamientosSeleccionados() {
+    const container = document.getElementById('tratamientosSeleccionados');
+    const containerLista = document.getElementById('tratamientosSeleccionadosList');
+    
+    if (tratamientosSeleccionados.length === 0) {
+        container.innerHTML = '<small class="text-muted">No se han seleccionado tratamientos</small>';
+        containerLista.innerHTML = '<small class="text-muted">No se han seleccionado tratamientos</small>';
+        return;
+    }
+    
+    let html = '';
+    let htmlLista = '';
+    
+    tratamientosSeleccionados.forEach((tratamiento, index) => {
+        const medicamentosInfo = tratamiento.medicamentos.map(med => {
+            // Buscar el nombre del medicamento en la lista de medicamentos disponibles
+            let nombreMedicamento = 'Medicamento';
+            if (med.medicamento_id) {
+                // Buscar en el select del modal para obtener el nombre
+                const selectElement = document.querySelector(`select[onchange*="medicamento_id"][onchange*="${med.medicamento_id}"]`);
+                if (selectElement) {
+                    const option = selectElement.querySelector(`option[value="${med.medicamento_id}"]`);
+                    if (option) {
+                        nombreMedicamento = option.textContent.split(' - ')[0];
+                    }
+                }
+            }
+            return `${nombreMedicamento} - ${med.dosis} - ${med.frecuencia}`;
+        }).join('<br>');
+        
+        html += `
+            <div class="d-flex justify-content-between align-items-start p-2 border rounded mb-2 bg-white">
+                <div class="flex-grow-1">
+                    <strong>Tratamiento ${index + 1}</strong>
+                    <br><small class="text-muted">${tratamiento.motivo || 'Sin motivo especificado'}</small>
+                    <br><small class="text-muted">Medicamentos: ${medicamentosInfo}</small>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="eliminarTratamientoSeleccionado(${index})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        
+        htmlLista += `
+            <div class="d-flex justify-content-between align-items-start p-2 border rounded mb-2 bg-light">
+                <div class="flex-grow-1">
+                    <strong>Tratamiento ${index + 1}</strong>
+                    <br><small class="text-muted">${tratamiento.motivo || 'Sin motivo especificado'}</small>
+                    <br><small class="text-muted">Medicamentos: ${medicamentosInfo}</small>
+                </div>
+                <span class="badge bg-success">✓</span>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    containerLista.innerHTML = htmlLista;
+    
+    // Actualizar estado de botones de impresión
+    actualizarBotonesImpresion();
+}
+
+// Función para eliminar tratamiento seleccionado
+function eliminarTratamientoSeleccionado(index) {
+    tratamientosSeleccionados.splice(index, 1);
+    actualizarListaTratamientosSeleccionados();
+}
+
+// Función para preparar el formulario antes del envío
+function prepararFormulario() {
+    const form = document.getElementById('consultaForm');
+    
+    // Limpiar campos ocultos anteriores
+    const camposOcultosAnteriores = form.querySelectorAll('input[name="examenes[]"], input[name="tratamientos[]"]');
+    camposOcultosAnteriores.forEach(campo => campo.remove());
+    
+    // Agregar campos ocultos para exámenes
+    examenesSeleccionados.forEach(examen => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'examenes[]';
+        input.value = `${examen.tipo}|${examen.valores}`;
+        form.appendChild(input);
+    });
+    
+    // Agregar campos ocultos para tratamientos
+    tratamientosSeleccionados.forEach(tratamiento => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'tratamientos[]';
+        input.value = JSON.stringify(tratamiento);
+        form.appendChild(input);
+    });
+    
+    return true;
+}
+
+// Función para imprimir receta
+function imprimirReceta() {
+    if (tratamientosSeleccionados.length === 0) {
+        alert('No hay tratamientos para imprimir');
+        return;
+    }
+    
+    const paciente = document.getElementById('paciente_id');
+    const medico = document.getElementById('medico_id');
+    const motivo = document.getElementById('motivo').value;
+    const observaciones = document.getElementById('observaciones').value;
+    
+    if (!paciente.value || !medico.value) {
+        alert('Debe seleccionar paciente y médico antes de imprimir');
+        return;
+    }
+    
+    const pacienteText = paciente.options[paciente.selectedIndex].text;
+    const medicoText = medico.options[medico.selectedIndex].text;
+    const fecha = new Date().toLocaleDateString('es-ES');
+    
+    let contenidoReceta = `
+        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; border: 2px solid #000;">
+            <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 20px;">
+                <h1 style="margin: 0; color: #2c3e50;">RECETA MÉDICA</h1>
+                <p style="margin: 5px 0; font-size: 14px;">Fecha: ${fecha}</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <p><strong>Paciente:</strong> ${pacienteText}</p>
+                <p><strong>Médico:</strong> ${medicoText}</p>
+                <p><strong>Motivo:</strong> ${motivo}</p>
+                ${observaciones ? `<p><strong>Observaciones:</strong> ${observaciones}</p>` : ''}
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #2c3e50; border-bottom: 1px solid #ccc; padding-bottom: 5px;">MEDICAMENTOS PRESCRITOS</h3>
+    `;
+    
+    tratamientosSeleccionados.forEach((tratamiento, index) => {
+        contenidoReceta += `
+            <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9;">
+                <h4 style="margin: 0 0 10px 0; color: #34495e;">Tratamiento ${index + 1}</h4>
+        `;
+        
+        if (tratamiento.medicamentos && tratamiento.medicamentos.length > 0) {
+            tratamiento.medicamentos.forEach(med => {
+                // Buscar el nombre del medicamento
+                let nombreMedicamento = 'Medicamento';
+                const selectElement = document.querySelector(`select[onchange*="medicamento_id"][onchange*="${med.medicamento_id}"]`);
+                if (selectElement) {
+                    const option = selectElement.querySelector(`option[value="${med.medicamento_id}"]`);
+                    if (option) {
+                        nombreMedicamento = option.textContent.split(' - ')[0];
+                    }
+                }
+                
+                contenidoReceta += `
+                    <div style="margin-bottom: 10px; padding: 8px; border-left: 3px solid #3498db; background-color: white;">
+                        <p style="margin: 0; font-weight: bold;">${nombreMedicamento}</p>
+                        <p style="margin: 2px 0; font-size: 14px;"><strong>Dosis:</strong> ${med.dosis}</p>
+                        <p style="margin: 2px 0; font-size: 14px;"><strong>Frecuencia:</strong> ${med.frecuencia}</p>
+                        ${med.comentarios ? `<p style="margin: 2px 0; font-size: 14px;"><strong>Comentarios:</strong> ${med.comentarios}</p>` : ''}
+                    </div>
+                `;
+            });
+        }
+        
+        contenidoReceta += `
+            </div>
+        `;
+    });
+    
+    contenidoReceta += `
+            </div>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ccc;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="text-align: center; flex: 1;">
+                        <div style="border-top: 1px solid #000; width: 200px; margin: 0 auto; padding-top: 5px;">
+                            <p style="margin: 0; font-size: 12px;">Firma del Médico</p>
+                        </div>
+                    </div>
+                    <div style="text-align: center; flex: 1;">
+                        <div style="border-top: 1px solid #000; width: 200px; margin: 0 auto; padding-top: 5px;">
+                            <p style="margin: 0; font-size: 12px;">Sello de la Institución</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const ventanaImpresion = window.open('', '_blank', 'width=800,height=600');
+    ventanaImpresion.document.write(contenidoReceta);
+    ventanaImpresion.document.close();
+    ventanaImpresion.focus();
+    
+    setTimeout(() => {
+        ventanaImpresion.print();
+    }, 500);
+}
+
+// Función para imprimir orden de exámenes
+function imprimirOrdenExamenes() {
+    if (examenesSeleccionados.length === 0) {
+        alert('No hay exámenes para imprimir');
+        return;
+    }
+    
+    const paciente = document.getElementById('paciente_id');
+    const medico = document.getElementById('medico_id');
+    const motivo = document.getElementById('motivo').value;
+    const observaciones = document.getElementById('observaciones').value;
+    
+    if (!paciente.value || !medico.value) {
+        alert('Debe seleccionar paciente y médico antes de imprimir');
+        return;
+    }
+    
+    const pacienteText = paciente.options[paciente.selectedIndex].text;
+    const medicoText = medico.options[medico.selectedIndex].text;
+    const fecha = new Date().toLocaleDateString('es-ES');
+    
+    let contenidoOrden = `
+        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; border: 2px solid #000;">
+            <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 20px;">
+                <h1 style="margin: 0; color: #2c3e50;">ORDEN DE EXÁMENES</h1>
+                <p style="margin: 5px 0; font-size: 14px;">Fecha: ${fecha}</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <p><strong>Paciente:</strong> ${pacienteText}</p>
+                <p><strong>Médico Solicitante:</strong> ${medicoText}</p>
+                <p><strong>Motivo:</strong> ${motivo}</p>
+                ${observaciones ? `<p><strong>Observaciones:</strong> ${observaciones}</p>` : ''}
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #2c3e50; border-bottom: 1px solid #ccc; padding-bottom: 5px;">EXÁMENES SOLICITADOS</h3>
+    `;
+    
+    examenesSeleccionados.forEach((examen, index) => {
+        contenidoOrden += `
+            <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9;">
+                <h4 style="margin: 0 0 10px 0; color: #34495e;">Examen ${index + 1}</h4>
+                <p style="margin: 0; font-weight: bold;">${examen.tipo}</p>
+                ${examen.valores ? `<p style="margin: 2px 0; font-size: 14px;"><strong>Valores/Parámetros:</strong> ${examen.valores}</p>` : ''}
+            </div>
+        `;
+    });
+    
+    contenidoOrden += `
+            </div>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ccc;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="text-align: center; flex: 1;">
+                        <div style="border-top: 1px solid #000; width: 200px; margin: 0 auto; padding-top: 5px;">
+                            <p style="margin: 0; font-size: 12px;">Firma del Médico</p>
+                        </div>
+                    </div>
+                    <div style="text-align: center; flex: 1;">
+                        <div style="border-top: 1px solid #000; width: 200px; margin: 0 auto; padding-top: 5px;">
+                            <p style="margin: 0; font-size: 12px;">Sello de la Institución</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const ventanaImpresion = window.open('', '_blank', 'width=800,height=600');
+    ventanaImpresion.document.write(contenidoOrden);
+    ventanaImpresion.document.close();
+    ventanaImpresion.focus();
+    
+    setTimeout(() => {
+        ventanaImpresion.print();
+    }, 500);
+}
+
+// Función para actualizar el estado de los botones de impresión
+function actualizarBotonesImpresion() {
+    const btnReceta = document.getElementById('btnImprimirReceta');
+    const btnOrden = document.getElementById('btnImprimirOrdenExamenes');
+    const btnEnviarReceta = document.getElementById('btnEnviarReceta');
+    const btnEnviarOrdenFarmacia = document.getElementById('btnEnviarOrdenFarmacia');
+
+    // Habilitar botón de receta si hay tratamientos
+    if (btnReceta) {
+        btnReceta.disabled = tratamientosSeleccionados.length === 0;
+    }
+    // Habilitar botón de enviar receta si hay tratamientos
+    if (btnEnviarReceta) {
+        btnEnviarReceta.disabled = tratamientosSeleccionados.length === 0;
+    }
+    // Habilitar botón de orden si hay exámenes
+    if (btnOrden) {
+        btnOrden.disabled = examenesSeleccionados.length === 0;
+    }
+    // Habilitar botón de enviar orden de farmacia si hay exámenes
+    if (btnEnviarOrdenFarmacia) {
+        btnEnviarOrdenFarmacia.disabled = examenesSeleccionados.length === 0;
+    }
+}
+
+// Función para limpiar el formulario
+function limpiarFormulario() {
+    document.getElementById('consultaForm').reset();
+    document.getElementById('consultaForm').classList.remove('was-validated');
+    
+    // Limpiar localStorage
+    const formFields = ['paciente_id', 'medico_id', 'motivo', 'observaciones', 'ordenes_medicas'];
+    
+    formFields.forEach(fieldName => {
+        localStorage.removeItem(`consulta_${fieldName}`);
+    });
+    
+    // Limpiar exámenes seleccionados
+    examenesSeleccionados = [];
+    actualizarListaExamenesSeleccionados();
+    
+    // Limpiar tratamientos seleccionados
+    tratamientosSeleccionados = [];
+    medicamentosTratamiento = [];
+    actualizarListaTratamientosSeleccionados();
+    
+    // Actualizar estado de botones de impresión
+    actualizarBotonesImpresion();
+}
+
+// Sobrescribir el botón de reset
+document.addEventListener('DOMContentLoaded', function() {
+    const resetBtn = document.querySelector('button[type="reset"]');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            limpiarFormulario();
+        });
+    }
+    
+    // Inicializar estado de botones de impresión
+    actualizarBotonesImpresion();
+});
+</script>
+
+<style>
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.cursor-pointer:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+}
+</style>
+{% endblock %}

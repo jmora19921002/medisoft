@@ -1,0 +1,693 @@
+{% extends "base.html" %}
+
+{% block title %}Exámenes - Medisoft{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-flask text-info me-2"></i>Exámenes</h2>
+        <div>
+            <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#modalAdicionarExamen">
+                <i class="fas fa-plus me-2"></i>Adicionar Examen
+            </button>
+            <a href="{{ url_for('nuevo_examen') }}" class="btn btn-info">
+                <i class="fas fa-plus me-2"></i>Nuevo Examen
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros y búsqueda -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="filtroEstado" class="form-label">Estado</label>
+                    <select class="form-select" id="filtroEstado">
+                        <option value="">Todos los estados</option>
+                        <option value="solicitado">Solicitado</option>
+                        <option value="en_proceso">En Proceso</option>
+                        <option value="completado">Completado</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="filtroTipo" class="form-label">Tipo de Examen</label>
+                    <input type="text" class="form-control" id="filtroTipo" placeholder="Buscar por tipo...">
+                </div>
+                <div class="col-md-3">
+                    <label for="filtroPaciente" class="form-label">Paciente</label>
+                    <input type="text" class="form-control" id="filtroPaciente" placeholder="Buscar por paciente...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <button type="button" class="btn btn-outline-secondary" id="btnLimpiarFiltros">
+                            <i class="fas fa-times me-2"></i>Limpiar Filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de exámenes -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Lista de Exámenes</h5>
+        </div>
+        <div class="card-body">
+            {% if examenes %}
+            <div class="table-responsive">
+                <table class="table table-hover" id="tablaExamenes">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Paciente</th>
+                            <th>Tipo de Examen</th>
+                            <th>Médico Solicitante</th>
+                            <th>Fecha Solicitud</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for examen in examenes %}
+                        <tr>
+                            <td><span class="badge bg-secondary">#{{ examen.id }}</span></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-user-injured text-primary me-2"></i>
+                                    <div>
+                                        <strong>{{ examen.paciente.apellido }}, {{ examen.paciente.nombre }}</strong>
+                                        <br><small class="text-muted">DNI: {{ examen.paciente.dni }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-flask text-info me-2"></i>
+                                    <div>
+                                        <strong>{{ examen.tipo_examen }}</strong>
+                                        {% if examen.motivo %}
+                                        <br><small class="text-muted">{{ examen.motivo[:50] }}{% if examen.motivo|length > 50 %}...{% endif %}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-user-md text-success me-2"></i>
+                                    <div>
+                                        <strong>Dr. {{ examen.medico_solicitante.apellido }}</strong>
+                                        <br><small class="text-muted">{{ examen.medico_solicitante.especialidad }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-calendar text-warning me-2"></i>
+                                    <div>
+                                        <strong>{{ examen.fecha_solicitud.strftime('%d/%m/%Y') }}</strong>
+                                        <br><small class="text-muted">{{ examen.fecha_solicitud.strftime('%H:%M') }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if examen.estado == 'solicitado' %}
+                                    <span class="badge bg-warning">Solicitado</span>
+                                {% elif examen.estado == 'en_proceso' %}
+                                    <span class="badge bg-info">En Proceso</span>
+                                {% elif examen.estado == 'completado' %}
+                                    <span class="badge bg-success">Completado</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                            data-bs-toggle="modal" data-bs-target="#modalDetalle{{ examen.id }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-warning" 
+                                            onclick="editarExamen('{{ examen.id }}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    {% if examen.estado != 'completado' %}
+                                    <button type="button" class="btn btn-sm btn-outline-success" 
+                                            onclick="cambiarEstado('{{ examen.id }}')">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-flask fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No hay exámenes registrados</h5>
+                <p class="text-muted">Comience registrando un nuevo examen</p>
+                <a href="{{ url_for('nuevo_examen') }}" class="btn btn-info">
+                    <i class="fas fa-plus me-2"></i>Registrar Examen
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modales de detalle -->
+{% for examen in examenes %}
+<div class="modal fade" id="modalDetalle{{ examen.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-flask text-info me-2"></i>Detalle del Examen #{{ examen.id }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-user-injured me-2"></i>Paciente</h6>
+                        <p><strong>{{ examen.paciente.apellido }}, {{ examen.paciente.nombre }}</strong><br>
+                        DNI: {{ examen.paciente.dni }}<br>
+                        Tel: {{ examen.paciente.telefono or 'No especificado' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-user-md me-2"></i>Médico Solicitante</h6>
+                        <p><strong>Dr. {{ examen.medico_solicitante.apellido }}, {{ examen.medico_solicitante.nombre }}</strong><br>
+                        Especialidad: {{ examen.medico_solicitante.especialidad }}</p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-flask me-2"></i>Información del Examen</h6>
+                        <p><strong>Tipo:</strong> {{ examen.tipo_examen }}<br>
+                        <strong>Estado:</strong> 
+                        {% if examen.estado == 'solicitado' %}
+                            <span class="badge bg-warning">Solicitado</span>
+                        {% elif examen.estado == 'en_proceso' %}
+                            <span class="badge bg-info">En Proceso</span>
+                        {% elif examen.estado == 'completado' %}
+                            <span class="badge bg-success">Completado</span>
+                        {% endif %}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-calendar me-2"></i>Fechas</h6>
+                        <p><strong>Solicitud:</strong> {{ examen.fecha_solicitud.strftime('%d/%m/%Y %H:%M') }}<br>
+                        {% if examen.fecha_realizacion %}
+                        <strong>Realización:</strong> {{ examen.fecha_realizacion.strftime('%d/%m/%Y %H:%M') }}
+                        {% else %}
+                        <strong>Realización:</strong> <span class="text-muted">Pendiente</span>
+                        {% endif %}</p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <h6><i class="fas fa-sticky-note me-2"></i>Motivo</h6>
+                        <p>{{ examen.motivo }}</p>
+                    </div>
+                </div>
+                {% if examen.valores_resultados %}
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <h6><i class="fas fa-chart-line me-2"></i>Resultados</h6>
+                        <p>{{ examen.valores_resultados }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                {% if examen.observaciones %}
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <h6><i class="fas fa-comment me-2"></i>Observaciones</h6>
+                        <p>{{ examen.observaciones }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-warning" onclick="editarExamen('{{ examen.id }}')">
+                    <i class="fas fa-edit me-2"></i>Editar
+                </button>
+                {% if examen.estado != 'completado' %}
+                <button type="button" class="btn btn-success" onclick="cambiarEstado('{{ examen.id }}')">
+                    <i class="fas fa-check me-2"></i>Marcar Completado
+                </button>
+                {% endif %}
+                <!-- Botón y formulario para enviar examen por correo -->
+                <form method="POST" action="{{ url_for('enviar_receta', paciente_id=examen.paciente.id) }}" style="display:inline;" onsubmit="return confirm('¿Enviar examen por correo?');">
+                    <input type="hidden" name="nombre_paciente" value="{{ examen.paciente.nombre }} {{ examen.paciente.apellido }}">
+                    <input type="hidden" name="medicamentos" value="{{ examen.tipo_examen }}">
+                    <input type="hidden" name="instrucciones" value="{{ examen.motivo }}">
+                    <input type="hidden" name="email" value="{{ examen.paciente.email }}">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-envelope me-2"></i>Enviar por correo
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+<!-- Modal para Adicionar Examen -->
+<div class="modal fade" id="modalAdicionarExamen" tabindex="-1" aria-labelledby="modalAdicionarExamenLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalAdicionarExamenLabel">
+                    <i class="fas fa-plus me-2"></i>Adicionar Examen
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formAdicionarExamen" method="POST" action="{{ url_for('nuevo_examen') }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="paciente_id" class="form-label">Paciente *</label>
+                            <select class="form-select" id="paciente_id" name="paciente_id" required>
+                                <option value="">Seleccionar paciente</option>
+                                {% for paciente in pacientes %}
+                                <option value="{{ paciente.id }}">
+                                    {{ paciente.apellido }}, {{ paciente.nombre }} - DNI: {{ paciente.dni }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="medico_solicitante_id" class="form-label">Médico Solicitante *</label>
+                            <select class="form-select" id="medico_solicitante_id" name="medico_solicitante_id" required>
+                                <option value="">Seleccionar médico</option>
+                                {% for medico in medicos %}
+                                <option value="{{ medico.id }}">
+                                    Dr. {{ medico.apellido }} - {{ medico.especialidad }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="motivo" class="form-label">Motivo del Examen *</label>
+                        <textarea class="form-control" id="motivo" name="motivo" 
+                                  rows="3" placeholder="Describa el motivo por el cual se solicitan los exámenes..." required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="observaciones" class="form-label">Observaciones Adicionales</label>
+                        <textarea class="form-control" id="observaciones" name="observaciones" 
+                                  rows="3" placeholder="Observaciones importantes, instrucciones especiales..."></textarea>
+                    </div>
+
+                    <hr>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0"><i class="fas fa-flask me-2"></i>Exámenes Seleccionados</h6>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="abrirSelectorExamenes()">
+                                <i class="fas fa-plus me-2"></i>Seleccionar Examen
+                            </button>
+                        </div>
+                        
+                        <div id="examenesSeleccionados" class="border rounded p-3 bg-light">
+                            <div class="text-center text-muted">
+                                <i class="fas fa-flask fa-2x mb-2"></i>
+                                <p class="mb-0">No hay exámenes seleccionados</p>
+                                <small>Haga clic en "Seleccionar Examen" para agregar</small>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="formAdicionarExamen" class="btn btn-success">
+                    <i class="fas fa-save me-2"></i>Registrar Exámenes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Seleccionar Tipo de Examen -->
+<div class="modal fade" id="modalSelectorExamen" tabindex="-1" aria-labelledby="modalSelectorExamenLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalSelectorExamenLabel">
+                    <i class="fas fa-list me-2"></i>Seleccionar Tipo de Examen
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="buscarTipoExamen" placeholder="Buscar tipo de examen...">
+                </div>
+                
+                <div id="treeviewTiposExamen" class="border rounded p-3" style="max-height: 400px; overflow-y: auto;">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2">Cargando tipos de examen...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Ingresar Valores del Examen -->
+<div class="modal fade" id="modalValoresExamen" tabindex="-1" aria-labelledby="modalValoresExamenLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="modalValoresExamenLabel">
+                    <i class="fas fa-chart-line me-2"></i>Valores del Examen
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="infoExamenSeleccionado" class="alert alert-info mb-3">
+                    <!-- Aquí se mostrará la información del examen seleccionado -->
+                </div>
+                
+                <div class="mb-3">
+                    <label for="valoresResultados" class="form-label">Valores/Resultados del Examen</label>
+                    <textarea class="form-control" id="valoresResultados" rows="6" 
+                              placeholder="Ingrese los valores, resultados, hallazgos del examen..."></textarea>
+                    <small class="form-text text-muted">Valores numéricos, hallazgos, interpretación de resultados</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-info" onclick="confirmarSeleccionExamen()">
+                    <i class="fas fa-check me-2"></i>Confirmar Selección
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Variables globales
+let examenesSeleccionados = [];
+let examenActual = null;
+let tiposExamenData = {};
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Filtros
+    const filtroEstado = document.getElementById('filtroEstado');
+    const filtroTipo = document.getElementById('filtroTipo');
+    const filtroPaciente = document.getElementById('filtroPaciente');
+    const btnLimpiarFiltros = document.getElementById('btnLimpiarFiltros');
+    const tabla = document.getElementById('tablaExamenes');
+
+    function aplicarFiltros() {
+        const estado = filtroEstado.value.toLowerCase();
+        const tipo = filtroTipo.value.toLowerCase();
+        const paciente = filtroPaciente.value.toLowerCase();
+
+        const filas = tabla.querySelectorAll('tbody tr');
+        filas.forEach(fila => {
+            const textoEstado = fila.querySelector('td:nth-child(6)').textContent.toLowerCase();
+            const textoTipo = fila.querySelector('td:nth-child(3)').textContent.toLowerCase();
+            const textoPaciente = fila.querySelector('td:nth-child(2)').textContent.toLowerCase();
+
+            const cumpleEstado = !estado || textoEstado.includes(estado);
+            const cumpleTipo = !tipo || textoTipo.includes(tipo);
+            const cumplePaciente = !paciente || textoPaciente.includes(paciente);
+
+            fila.style.display = (cumpleEstado && cumpleTipo && cumplePaciente) ? '' : 'none';
+        });
+    }
+
+    filtroEstado.addEventListener('change', aplicarFiltros);
+    filtroTipo.addEventListener('input', aplicarFiltros);
+    filtroPaciente.addEventListener('input', aplicarFiltros);
+
+    btnLimpiarFiltros.addEventListener('click', function() {
+        filtroEstado.value = '';
+        filtroTipo.value = '';
+        filtroPaciente.value = '';
+        aplicarFiltros();
+    });
+
+    // Cargar tipos de examen al abrir el modal
+    const modalAdicionar = document.getElementById('modalAdicionarExamen');
+    modalAdicionar.addEventListener('show.bs.modal', function() {
+        cargarTiposExamen();
+    });
+
+    // Buscador de tipos de examen
+    const buscarTipoExamen = document.getElementById('buscarTipoExamen');
+    buscarTipoExamen.addEventListener('input', function() {
+        filtrarTiposExamen(this.value);
+    });
+});
+
+// Función para abrir el selector de exámenes
+function abrirSelectorExamenes() {
+    const modalSelector = new bootstrap.Modal(document.getElementById('modalSelectorExamen'));
+    modalSelector.show();
+}
+
+// Función para cargar tipos de examen
+async function cargarTiposExamen() {
+    try {
+        const response = await fetch('/examenes/obtener_tipos');
+        const data = await response.json();
+        tiposExamenData = data;
+        renderizarTreeviewTiposExamen(data);
+    } catch (error) {
+        console.error('Error al cargar tipos de examen:', error);
+        document.getElementById('treeviewTiposExamen').innerHTML = 
+            '<div class="alert alert-danger">Error al cargar los tipos de examen</div>';
+    }
+}
+
+// Función para renderizar el treeview de tipos de examen
+function renderizarTreeviewTiposExamen(data) {
+    const container = document.getElementById('treeviewTiposExamen');
+    
+    if (Object.keys(data).length === 0) {
+        container.innerHTML = '<div class="text-center text-muted">No hay tipos de examen disponibles</div>';
+        return;
+    }
+
+    let html = '';
+    for (const [categoria, tipos] of Object.entries(data)) {
+        html += `
+            <div class="categoria-examen mb-3">
+                <h6 class="text-primary mb-2">
+                    <i class="fas fa-folder me-2"></i>${categoria}
+                </h6>
+                <div class="ms-3">
+        `;
+        
+        tipos.forEach(tipo => {
+            html += `
+                <div class="tipo-examen-item p-2 border rounded mb-2 cursor-pointer" 
+                     onclick="seleccionarTipoExamen('${tipo.nombre}', ${JSON.stringify(tipo).replace(/"/g, '&quot;')})">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${tipo.nombre}</strong>
+                            <br><small class="text-muted">${tipo.descripcion || 'Sin descripción'}</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-info">$${tipo.precio}</span>
+                            <br><small class="text-muted">${tipo.tiempo_estimado || 'Tiempo no especificado'}</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+}
+
+// Función para filtrar tipos de examen
+function filtrarTiposExamen(busqueda) {
+    if (!busqueda.trim()) {
+        renderizarTreeviewTiposExamen(tiposExamenData);
+        return;
+    }
+
+    const busquedaLower = busqueda.toLowerCase();
+    const dataFiltrada = {};
+    
+    for (const [categoria, tipos] of Object.entries(tiposExamenData)) {
+        const tiposFiltrados = tipos.filter(tipo => 
+            tipo.nombre.toLowerCase().includes(busquedaLower) ||
+            tipo.descripcion.toLowerCase().includes(busquedaLower) ||
+            tipo.codigo.toLowerCase().includes(busquedaLower)
+        );
+        
+        if (tiposFiltrados.length > 0) {
+            dataFiltrada[categoria] = tiposFiltrados;
+        }
+    }
+    
+    renderizarTreeviewTiposExamen(dataFiltrada);
+}
+
+// Función para seleccionar un tipo de examen
+function seleccionarTipoExamen(nombre, datos) {
+    examenActual = { nombre, datos };
+    
+    // Mostrar información del examen seleccionado
+    const infoContainer = document.getElementById('infoExamenSeleccionado');
+    infoContainer.innerHTML = `
+        <div class="row">
+            <div class="col-md-8">
+                <h6 class="mb-2"><i class="fas fa-flask me-2"></i>${datos.nombre}</h6>
+                <p class="mb-1"><strong>Código:</strong> ${datos.codigo}</p>
+                <p class="mb-1"><strong>Categoría:</strong> ${datos.categoria}</p>
+                <p class="mb-0"><strong>Precio:</strong> $${datos.precio}</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <span class="badge bg-primary fs-6">$${datos.precio}</span>
+                <br><small class="text-muted">${datos.tiempo_estimado || 'Tiempo no especificado'}</small>
+            </div>
+        </div>
+        ${datos.descripcion ? `<hr><p class="mb-0"><strong>Descripción:</strong> ${datos.descripcion}</p>` : ''}
+        ${datos.preparacion_requerida ? `<hr><p class="mb-0"><strong>Preparación:</strong> ${datos.preparacion_requerida}</p>` : ''}
+    `;
+    
+    // Cerrar modal selector y abrir modal de valores
+    bootstrap.Modal.getInstance(document.getElementById('modalSelectorExamen')).hide();
+    const modalValores = new bootstrap.Modal(document.getElementById('modalValoresExamen'));
+    modalValores.show();
+}
+
+// Función para confirmar la selección del examen
+function confirmarSeleccionExamen() {
+    if (!examenActual) return;
+    
+    const valores = document.getElementById('valoresResultados').value.trim();
+    
+    // Agregar el examen a la lista
+    const examen = {
+        nombre: examenActual.nombre,
+        datos: examenActual.datos,
+        valores: valores
+    };
+    
+    examenesSeleccionados.push(examen);
+    actualizarListaExamenesSeleccionados();
+    
+    // Limpiar y cerrar modal
+    document.getElementById('valoresResultados').value = '';
+    examenActual = null;
+    bootstrap.Modal.getInstance(document.getElementById('modalValoresExamen')).hide();
+}
+
+// Función para actualizar la lista de exámenes seleccionados
+function actualizarListaExamenesSeleccionados() {
+    const container = document.getElementById('examenesSeleccionados');
+    
+    if (examenesSeleccionados.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted">
+                <i class="fas fa-flask fa-2x mb-2"></i>
+                <p class="mb-0">No hay exámenes seleccionados</p>
+                <small>Haga clic en "Seleccionar Examen" para agregar</small>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    examenesSeleccionados.forEach((examen, index) => {
+        html += `
+            <div class="examen-seleccionado border rounded p-3 mb-3 bg-white">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-2">
+                            <i class="fas fa-flask text-info me-2"></i>${examen.nombre}
+                        </h6>
+                        <p class="mb-1"><strong>Código:</strong> ${examen.datos.codigo}</p>
+                        <p class="mb-1"><strong>Categoría:</strong> ${examen.datos.categoria}</p>
+                        <p class="mb-1"><strong>Precio:</strong> $${examen.datos.precio}</p>
+                        ${examen.valores ? `<p class="mb-0"><strong>Valores:</strong> ${examen.valores}</p>` : ''}
+                    </div>
+                    <div class="ms-3">
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="eliminarExamenSeleccionado(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// Función para eliminar un examen de la lista
+function eliminarExamenSeleccionado(index) {
+    examenesSeleccionados.splice(index, 1);
+    actualizarListaExamenesSeleccionados();
+}
+
+// Función para procesar el formulario antes de enviar
+document.getElementById('formAdicionarExamen').addEventListener('submit', function(e) {
+    if (examenesSeleccionados.length === 0) {
+        e.preventDefault();
+        alert('Debe seleccionar al menos un examen antes de continuar.');
+        return false;
+    }
+    
+    // Agregar campos ocultos para cada examen
+    examenesSeleccionados.forEach(examen => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'examenes[]';
+        input.value = `${examen.nombre}|${examen.valores || ''}`;
+        this.appendChild(input);
+    });
+    
+    return true;
+});
+
+// Estilos CSS adicionales
+const style = document.createElement('style');
+style.textContent = `
+    .cursor-pointer { cursor: pointer; }
+    .tipo-examen-item:hover { background-color: #f8f9fa; border-color: #007bff !important; }
+    .examen-seleccionado { transition: all 0.3s ease; }
+    .examen-seleccionado:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+`;
+document.head.appendChild(style);
+
+function editarExamen(id) {
+    // Redirigir a la página de edición
+    window.location.href = `/examenes/editar/${id}`;
+}
+
+function cambiarEstado(id) {
+    const nuevoEstado = prompt('Ingrese el nuevo estado (solicitado/en_proceso/completado):');
+    if (nuevoEstado && ['solicitado', 'en_proceso', 'completado'].includes(nuevoEstado.toLowerCase())) {
+        // Aquí se podría hacer una llamada AJAX para actualizar el estado
+        alert('Estado actualizado a: ' + nuevoEstado);
+        location.reload();
+    }
+}
+</script>
+{% endblock %}

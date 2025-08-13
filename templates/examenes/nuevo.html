@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Examen - Medisoft{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-flask text-info me-2"></i>Nuevo Examen</h2>
+        <a href="{{ url_for('examenes') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-plus me-2"></i>Solicitud de Examen</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('nuevo_examen') }}" id="formExamen">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="paciente_id" class="form-label">Paciente *</label>
+                                <select class="form-select" id="paciente_id" name="paciente_id" required>
+                                    <option value="">Seleccionar paciente</option>
+                                    {% for paciente in pacientes %}
+                                    <option value="{{ paciente.id }}">
+                                        {{ paciente.apellido }}, {{ paciente.nombre }} - DNI: {{ paciente.dni }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="medico_solicitante_id" class="form-label">Médico Solicitante *</label>
+                                <select class="form-select" id="medico_solicitante_id" name="medico_solicitante_id" required>
+                                    <option value="">Seleccionar médico</option>
+                                    {% for medico in medicos %}
+                                    <option value="{{ medico.id }}">
+                                        Dr. {{ medico.apellido }} - {{ medico.especialidad }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="tipo_examen" class="form-label">Tipo de Examen *</label>
+                                <select class="form-select" id="tipo_examen" name="tipo_examen" required>
+                                    <option value="">Seleccionar tipo</option>
+                                    <option value="Análisis de Sangre">Análisis de Sangre</option>
+                                    <option value="Análisis de Orina">Análisis de Orina</option>
+                                    <option value="Radiografía">Radiografía</option>
+                                    <option value="Tomografía">Tomografía</option>
+                                    <option value="Resonancia Magnética">Resonancia Magnética</option>
+                                    <option value="Ecografía">Ecografía</option>
+                                    <option value="Electrocardiograma">Electrocardiograma</option>
+                                    <option value="Endoscopía">Endoscopía</option>
+                                    <option value="Biopsia">Biopsia</option>
+                                    <option value="Cultivo">Cultivo</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="estado" class="form-label">Estado Inicial *</label>
+                                <select class="form-select" id="estado" name="estado" required>
+                                    <option value="solicitado">Solicitado</option>
+                                    <option value="en_proceso">En Proceso</option>
+                                    <option value="completado">Completado</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="motivo" class="form-label">Motivo del Examen *</label>
+                            <textarea class="form-control" id="motivo" name="motivo" 
+                                      rows="4" placeholder="Describa el motivo por el cual se solicita el examen, síntomas, sospechas diagnósticas..." required></textarea>
+                            <small class="form-text text-muted">Describa detalladamente el motivo y la sospecha diagnóstica</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="fecha_solicitud" class="form-label">Fecha de Solicitud *</label>
+                                <input type="datetime-local" class="form-control" id="fecha_solicitud" name="fecha_solicitud" 
+                                       value="{{ now }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="fecha_realizacion" class="form-label">Fecha de Realización</label>
+                                <input type="datetime-local" class="form-control" id="fecha_realizacion" name="fecha_realizacion">
+                                <small class="form-text text-muted">Dejar vacío si aún no se ha realizado</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="valores_resultados" class="form-label">Resultados del Examen</label>
+                            <textarea class="form-control" id="valores_resultados" name="valores_resultados" 
+                                      rows="5" placeholder="Ingrese los valores, resultados, hallazgos del examen..."></textarea>
+                            <small class="form-text text-muted">Valores numéricos, hallazgos, interpretación de resultados</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="observaciones" class="form-label">Observaciones Adicionales</label>
+                            <textarea class="form-control" id="observaciones" name="observaciones" 
+                                      rows="4" placeholder="Observaciones importantes, instrucciones especiales, preparación del paciente..."></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-info btn-lg">
+                                <i class="fas fa-save me-2"></i>Solicitar Examen
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información del Examen</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Consejo:</strong> Complete todos los campos con la mayor precisión posible.
+                    </div>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Seleccione paciente y médico
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Especifique el tipo de examen
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Describa el motivo detalladamente
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Incluya observaciones relevantes
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Campos Obligatorios</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled small">
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Paciente
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Médico solicitante
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Tipo de examen
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Motivo
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Estado
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Fecha de solicitud
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="fas fa-flask me-2"></i>Tipos de Examen</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled small">
+                        <li class="mb-1">
+                            <i class="fas fa-tint text-danger me-1"></i>
+                            Análisis de Sangre
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-tint text-warning me-1"></i>
+                            Análisis de Orina
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-x-ray text-info me-1"></i>
+                            Radiografía
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-brain text-primary me-1"></i>
+                            Tomografía
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-magnet text-success me-1"></i>
+                            Resonancia Magnética
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-wave-square text-warning me-1"></i>
+                            Ecografía
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Establecer fecha y hora actual por defecto
+    const now = new Date();
+    const fechaSolicitud = document.getElementById('fecha_solicitud');
+    const fechaRealizacion = document.getElementById('fecha_realizacion');
+    
+    // Formatear fecha para datetime-local
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    const fechaActual = `${year}-${month}-${day}T${hours}:${minutes}`;
+    fechaSolicitud.value = fechaActual;
+
+    // Validación del formulario
+    const form = document.getElementById('formExamen');
+    form.addEventListener('submit', function(e) {
+        const paciente = document.getElementById('paciente_id').value;
+        const medico = document.getElementById('medico_solicitante_id').value;
+        const tipoExamen = document.getElementById('tipo_examen').value;
+        const estado = document.getElementById('estado').value;
+        const motivo = document.getElementById('motivo').value.trim();
+        const fechaSolicitud = document.getElementById('fecha_solicitud').value;
+        
+        if (!paciente || !medico || !tipoExamen || !estado || !motivo || !fechaSolicitud) {
+            e.preventDefault();
+            alert('Por favor complete todos los campos obligatorios.');
+            return false;
+        }
+
+        // Validar que la fecha de realización sea posterior a la de solicitud si se especifica
+        if (fechaRealizacion.value && fechaRealizacion.value <= fechaSolicitud) {
+            e.preventDefault();
+            alert('La fecha de realización debe ser posterior a la fecha de solicitud.');
+            return false;
+        }
+    });
+
+    // Auto-resize de textareas
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    });
+
+    // Actualizar fecha mínima de realización cuando cambie la fecha de solicitud
+    fechaSolicitud.addEventListener('change', function() {
+        if (fechaRealizacion.value && fechaRealizacion.value <= this.value) {
+            fechaRealizacion.value = '';
+        }
+        fechaRealizacion.min = this.value;
+    });
+
+    // Campo personalizado para tipo de examen
+    const tipoExamenSelect = document.getElementById('tipo_examen');
+    tipoExamenSelect.addEventListener('change', function() {
+        if (this.value === 'Otro') {
+            const nuevoTipo = prompt('Especifique el tipo de examen:');
+            if (nuevoTipo && nuevoTipo.trim()) {
+                // Crear nueva opción
+                const nuevaOpcion = document.createElement('option');
+                nuevaOpcion.value = nuevoTipo.trim();
+                nuevaOpcion.textContent = nuevoTipo.trim();
+                nuevaOpcion.selected = true;
+                
+                // Insertar antes de la opción "Otro"
+                this.insertBefore(nuevaOpcion, this.lastElementChild);
+            } else {
+                this.value = '';
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

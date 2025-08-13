@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Nueva Cuenta por Cobrar</h2>
+  <form method="post">
+    <div class="mb-3">
+      <label for="paciente_id" class="form-label">Paciente</label>
+      <select class="form-select" id="paciente_id" name="paciente_id" required>
+        {% for paciente in pacientes %}
+        <option value="{{ paciente.id }}">{{ paciente.nombre }} {{ paciente.apellido }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="concepto" class="form-label">Concepto</label>
+      <input type="text" class="form-control" id="concepto" name="concepto" required>
+    </div>
+    <div class="mb-3">
+      <label for="monto" class="form-label">Monto</label>
+      <input type="number" step="0.01" class="form-control" id="monto" name="monto" required>
+    </div>
+    <div class="mb-3">
+      <label for="fecha" class="form-label">Fecha</label>
+      <input type="date" class="form-control" id="fecha" name="fecha">
+    </div>
+    <div class="mb-3">
+      <label for="estado" class="form-label">Estado</label>
+      <select class="form-select" id="estado" name="estado">
+        <option value="pendiente">Pendiente</option>
+        <option value="pagada">Pagada</option>
+        <option value="vencida">Vencida</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a href="{{ url_for('cuentas_por_cobrar') }}" class="btn btn-secondary">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

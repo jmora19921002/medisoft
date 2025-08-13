@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Administración</h2>
+  <div class="list-group mt-3">
+    <a href="{{ url_for('facturacion') }}" class="list-group-item list-group-item-action">Facturación</a>
+    <a href="{{ url_for('cuentas_por_cobrar') }}" class="list-group-item list-group-item-action">Cuentas por Cobrar</a>
+  </div>
+</div>
+{% endblock %}

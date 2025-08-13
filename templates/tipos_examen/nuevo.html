@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Tipo de Examen - Medisoft{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-plus text-info me-2"></i>Nuevo Tipo de Examen</h2>
+        <a href="{{ url_for('tipos_examen') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-flask me-2"></i>Información del Tipo de Examen</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('nuevo_tipo_examen') }}" id="formTipoExamen">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="codigo" class="form-label">Código *</label>
+                                <input type="text" class="form-control" id="codigo" name="codigo" 
+                                       placeholder="Ej: LAB001, RAD001" required>
+                                <small class="form-text text-muted">Código único para identificar el tipo de examen</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="nombre" class="form-label">Nombre *</label>
+                                <input type="text" class="form-control" id="nombre" name="nombre" 
+                                       placeholder="Ej: Análisis de Sangre Completo" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="descripcion" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="descripcion" name="descripcion" 
+                                      rows="3" placeholder="Descripción detallada del examen, qué incluye, etc."></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="categoria" class="form-label">Categoría</label>
+                                <select class="form-select" id="categoria" name="categoria">
+                                    <option value="">Seleccionar categoría</option>
+                                    <option value="Laboratorio">Laboratorio</option>
+                                    <option value="Imagenología">Imagenología</option>
+                                    <option value="Cardiología">Cardiología</option>
+                                    <option value="Neurología">Neurología</option>
+                                    <option value="Endoscopía">Endoscopía</option>
+                                    <option value="Patología">Patología</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="precio" class="form-label">Precio *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="precio" name="precio" 
+                                           step="0.01" min="0" placeholder="0.00" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="tiempo_estimado" class="form-label">Tiempo Estimado</label>
+                                <input type="text" class="form-control" id="tiempo_estimado" name="tiempo_estimado" 
+                                       placeholder="Ej: 30 minutos, 2 horas, 1 día">
+                                <small class="form-text text-muted">Tiempo aproximado para realizar el examen</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="preparacion_requerida" class="form-label">Preparación Requerida</label>
+                                <textarea class="form-control" id="preparacion_requerida" name="preparacion_requerida" 
+                                          rows="2" placeholder="Instrucciones de preparación para el paciente"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-info btn-lg">
+                                <i class="fas fa-save me-2"></i>Guardar Tipo de Examen
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información del Formulario</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Consejo:</strong> Complete todos los campos obligatorios para crear un tipo de examen válido.
+                    </div>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Código único y descriptivo
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Nombre claro y comprensible
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Precio actualizado
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Categoría apropiada
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Campos Obligatorios</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled small">
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Código
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Nombre
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Precio
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="fas fa-tags me-2"></i>Categorías Sugeridas</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled small">
+                        <li class="mb-1">
+                            <i class="fas fa-tint text-danger me-1"></i>
+                            <strong>Laboratorio:</strong> Análisis de sangre, orina, etc.
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-x-ray text-info me-1"></i>
+                            <strong>Imagenología:</strong> Radiografías, tomografías, etc.
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-heart text-danger me-1"></i>
+                            <strong>Cardiología:</strong> Electrocardiogramas, ecocardiogramas
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-brain text-primary me-1"></i>
+                            <strong>Neurología:</strong> EEG, EMG, etc.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación del formulario
+    const form = document.getElementById('formTipoExamen');
+    form.addEventListener('submit', function(e) {
+        const codigo = document.getElementById('codigo').value.trim();
+        const nombre = document.getElementById('nombre').value.trim();
+        const precio = document.getElementById('precio').value;
+        
+        if (!codigo || !nombre || !precio) {
+            e.preventDefault();
+            alert('Por favor complete todos los campos obligatorios.');
+            return false;
+        }
+
+        if (parseFloat(precio) <= 0) {
+            e.preventDefault();
+            alert('El precio debe ser mayor a cero.');
+            return false;
+        }
+    });
+
+    // Auto-resize de textareas
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    });
+
+    // Campo personalizado para categoría
+    const categoriaSelect = document.getElementById('categoria');
+    categoriaSelect.addEventListener('change', function() {
+        if (this.value === 'Otro') {
+            const nuevaCategoria = prompt('Especifique la nueva categoría:');
+            if (nuevaCategoria && nuevaCategoria.trim()) {
+                // Crear nueva opción
+                const nuevaOpcion = document.createElement('option');
+                nuevaOpcion.value = nuevaCategoria.trim();
+                nuevaOpcion.textContent = nuevaCategoria.trim();
+                nuevaOpcion.selected = true;
+                
+                // Insertar antes de la opción "Otro"
+                this.insertBefore(nuevaOpcion, this.lastElementChild);
+            } else {
+                this.value = '';
+            }
+        }
+    });
+
+    // Generar código automáticamente basado en el nombre
+    const nombreInput = document.getElementById('nombre');
+    const codigoInput = document.getElementById('codigo');
+    
+    nombreInput.addEventListener('blur', function() {
+        if (this.value.trim() && !codigoInput.value.trim()) {
+            const nombre = this.value.trim();
+            const palabras = nombre.split(' ');
+            let codigo = '';
+            
+            if (palabras.length >= 2) {
+                codigo = palabras[0].substring(0, 3).toUpperCase() + 
+                        palabras[1].substring(0, 3).toUpperCase();
+            } else {
+                codigo = nombre.substring(0, 6).toUpperCase();
+            }
+            
+            // Agregar número aleatorio para hacerlo único
+            codigo += Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            codigoInput.value = codigo;
+        }
+    });
+});
+</script>
+{% endblock %}

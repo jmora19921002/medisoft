@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Editar Permiso{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Editar Permiso</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre *</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" value="{{ permiso.nombre }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="descripcion" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="descripcion" name="descripcion" rows="3">{{ permiso.descripcion }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modulo" class="form-label">Módulo *</label>
+                            <input type="text" class="form-control" id="modulo" name="modulo" value="{{ permiso.modulo }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="accion" class="form-label">Acción *</label>
+                            <select class="form-select" id="accion" name="accion" required>
+                                <option value="crear" {% if permiso.accion=='crear' %}selected{% endif %}>Crear</option>
+                                <option value="leer" {% if permiso.accion=='leer' %}selected{% endif %}>Leer</option>
+                                <option value="actualizar" {% if permiso.accion=='actualizar' %}selected{% endif %}>Actualizar</option>
+                                <option value="eliminar" {% if permiso.accion=='eliminar' %}selected{% endif %}>Eliminar</option>
+                            </select>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('permisos') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Volver
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

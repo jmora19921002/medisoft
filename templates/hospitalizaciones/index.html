@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2"><i class="fas fa-procedures me-2"></i>Hospitalizaciones</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalNuevaHospitalizacion">
+                <i class="fas fa-plus me-2"></i>Nueva Hospitalización
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabla de Hospitalizaciones -->
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Paciente</th>
+                            <th>Médico Tratante</th>
+                            <th>Enfermera</th>
+                            <th>Fecha Ingreso</th>
+                            <th>Días Hospitalizado</th>
+                            <th>Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for hosp in hospitalizaciones %}
+                        <tr>
+                            <td>{{ hosp.id }}</td>
+                            <td>{{ hosp.paciente.nombre }} {{ hosp.paciente.apellido }}</td>
+                            <td>{{ hosp.medico.nombre }} {{ hosp.medico.apellido }}</td>
+                            <td>{{ hosp.enfermera.nombre }} {{ hosp.enfermera.apellido }}</td>
+                            <td>{{ hosp.fecha_ingreso.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ hosp.dias_hospitalizado }}</td>
+                            <td>{{ hosp.observaciones }}</td>
+                            <td>
+                                <a href="{{ url_for('editar_hospitalizacion', id=hosp.id) }}" class="btn btn-sm btn-warning">Editar</a>
+                                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#evolucionModal{{ hosp.id }}">Evolución</button>
+                                <!-- Modal Evolución -->
+                                <div class="modal fade" id="evolucionModal{{ hosp.id }}" tabindex="-1" aria-labelledby="evolucionModalLabel{{ hosp.id }}" aria-hidden="true">
+                                  <div class="modal-dialog">
+                                    <div class="modal-content">
+                                      <div class="modal-header">
+                                        <h5 class="modal-title" id="evolucionModalLabel{{ hosp.id }}">Evolución de la Hospitalización #{{ hosp.id }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                      </div>
+                                      <div class="modal-body">
+                                        <h6>Medicamentos aplicados</h6>
+                                        <ul>
+                                          {% set cirugia = cirugias|selectattr('paciente_id', 'equalto', hosp.paciente_id)|list|first %}
+                                          {% if cirugia and cirugia.medicamentos_aplicados %}
+                                            {% for med in cirugia.medicamentos_aplicados|from_json %}
+                                              <li>{{ med.nombre }}</li>
+                                            {% endfor %}
+                                          {% else %}
+                                            <li class="text-muted">No hay medicamentos registrados</li>
+                                          {% endif %}
+                                        </ul>
+                                        <h6>Insumos usados</h6>
+                                        <ul>
+                                          {% if cirugia and cirugia.insumos_usados %}
+                                            {% for ins in cirugia.insumos_usados|from_json %}
+                                              <li>{{ ins.nombre }}</li>
+                                            {% endfor %}
+                                          {% else %}
+                                            <li class="text-muted">No hay insumos registrados</li>
+                                          {% endif %}
+                                        </ul>
+                                        <h6>Evolución</h6>
+                                        <textarea class="form-control" rows="3" readonly>{{ hosp.observaciones }}</textarea>
+                                      </div>
+                                      <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox fa-3x mb-3"></i>
+                                <p>No hay hospitalizaciones registradas</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nueva Hospitalización -->
+    <div class="modal fade" id="modalNuevaHospitalizacion" tabindex="-1" aria-labelledby="modalNuevaHospitalizacionLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form method="POST" action="{{ url_for('nueva_hospitalizacion') }}">
+            <div class="modal-header">
+              <h5 class="modal-title" id="modalNuevaHospitalizacionLabel">Nueva Hospitalización</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="paciente_id" class="form-label">Paciente</label>
+                <select class="form-select" id="paciente_id" name="paciente_id" required>
+                  <option value="">Seleccione un paciente</option>
+                  {% for paciente in pacientes %}
+                  <option value="{{ paciente.id }}">{{ paciente.nombre }} {{ paciente.apellido }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="medico_id" class="form-label">Médico Tratante</label>
+                <select class="form-select" id="medico_id" name="medico_id" required>
+                  <option value="">Seleccione un médico</option>
+                  {% for medico in medicos %}
+                  <option value="{{ medico.id }}">{{ medico.nombre }} {{ medico.apellido }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="enfermera_id" class="form-label">Enfermera</label>
+                <select class="form-select" id="enfermera_id" name="enfermera_id" required>
+                  <option value="">Seleccione una enfermera</option>
+                  {% for enfermera in enfermeras %}
+                  <option value="{{ enfermera.id }}">{{ enfermera.nombre }} {{ enfermera.apellido }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="dias_hospitalizado" class="form-label">Días Hospitalizado</label>
+                <input type="number" class="form-control" id="dias_hospitalizado" name="dias_hospitalizado" min="1" required>
+              </div>
+              <div class="mb-3">
+                <label for="observaciones" class="form-label">Observaciones</label>
+                <textarea class="form-control" id="observaciones" name="observaciones" rows="2"></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+# Configuración de la aplicación
+SECRET_KEY=tu_clave_secreta_muy_segura_cambiar_en_produccion
+FLASK_ENV=development
+
+# Configuración de PostgreSQL
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=tu_password
+POSTGRES_DB=medisoft_db
+
+# URL de la base de datos
+DATABASE_URL=postgresql://postgres:tu_password@localhost:5432/medisoft_db

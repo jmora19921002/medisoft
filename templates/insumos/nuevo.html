@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Insumo - Sistema Médico{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="fas fa-box me-2"></i>Nuevo Insumo
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{{ url_for('insumos') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-plus me-2"></i>Información del Insumo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="insumoForm">
+                        <div class="row">
+                            <!-- Información Básica -->
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>Información Básica
+                                </h6>
+                                
+                                <div class="mb-3">
+                                    <label for="codigo" class="form-label">Código *</label>
+                                    <input type="text" class="form-control" id="codigo" name="codigo" required 
+                                           placeholder="INS001" maxlength="20">
+                                    <div class="form-text">Código único para identificar el insumo</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="nombre" class="form-label">Nombre *</label>
+                                    <input type="text" class="form-control" id="nombre" name="nombre" required
+                                           placeholder="Jeringas 10ml">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="descripcion" class="form-label">Descripción</label>
+                                    <textarea class="form-control" id="descripcion" name="descripcion" rows="3"
+                                              placeholder="Descripción detallada del insumo"></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="categoria" class="form-label">Categoría</label>
+                                    <select class="form-select" id="categoria" name="categoria">
+                                        <option value="">Seleccione una categoría...</option>
+                                        <option value="Inyectables">Inyectables</option>
+                                        <option value="Protección">Protección</option>
+                                        <option value="Curación">Curación</option>
+                                        <option value="Diagnóstico">Diagnóstico</option>
+                                        <option value="Equipamiento">Equipamiento</option>
+                                        <option value="Otros">Otros</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Control de Stock -->
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-boxes me-2"></i>Control de Stock
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label for="stock" class="form-label">Stock Inicial *</label>
+                                    <input type="number" class="form-control" id="stock" name="stock" required
+                                           min="0" value="0">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="stock_minimo" class="form-label">Stock Mínimo *</label>
+                                    <input type="number" class="form-control" id="stock_minimo" name="stock_minimo" required
+                                           min="0" value="0">
+                                    <div class="form-text">Cantidad mínima antes de generar alerta</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="precio_unitario" class="form-label">Precio Unitario *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="precio_unitario" name="precio_unitario" required
+                                               min="0" step="0.01" placeholder="0.00">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="unidad_medida" class="form-label">Unidad de Medida</label>
+                                    <select class="form-select" id="unidad_medida" name="unidad_medida">
+                                        <option value="">Seleccione...</option>
+                                        <option value="Unidad">Unidad</option>
+                                        <option value="Caja">Caja</option>
+                                        <option value="Paquete">Paquete</option>
+                                        <option value="Litro">Litro</option>
+                                        <option value="Mililitro">Mililitro</option>
+                                        <option value="Gramo">Gramo</option>
+                                        <option value="Metro">Metro</option>
+                                        <option value="Par">Par</option>
+                                        <option value="Docena">Docena</option>
+                                    </select>
+                                </div>
+
+                                <!-- Información Adicional -->
+                                <h6 class="text-primary mb-3 mt-4">
+                                    <i class="fas fa-cog me-2"></i>Información Adicional
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label for="proveedor" class="form-label">Proveedor</label>
+                                    <input type="text" class="form-control" id="proveedor" name="proveedor"
+                                           placeholder="Nombre del proveedor">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="ubicacion" class="form-label">Ubicación en Almacén</label>
+                                    <input type="text" class="form-control" id="ubicacion" name="ubicacion"
+                                           placeholder="Estante A, Nivel 2">
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="requiere_refrigeracion" name="requiere_refrigeracion">
+                                        <label class="form-check-label" for="requiere_refrigeracion">
+                                            Requiere Refrigeración
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="control_lote" name="control_lote">
+                                        <label class="form-check-label" for="control_lote">
+                                            Control de Lote
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="limpiarFormulario()">
+                                        <i class="fas fa-eraser me-2"></i>Limpiar
+                                    </button>
+                                    <a href="{{ url_for('insumos') }}" class="btn btn-outline-danger">
+                                        <i class="fas fa-times me-2"></i>Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Guardar Insumo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Validación del formulario
+document.getElementById('insumoForm').addEventListener('submit', function(e) {
+    const codigo = document.getElementById('codigo').value;
+    const nombre = document.getElementById('nombre').value;
+    const stock = parseInt(document.getElementById('stock').value);
+    const stockMinimo = parseInt(document.getElementById('stock_minimo').value);
+    const precioUnitario = parseFloat(document.getElementById('precio_unitario').value);
+
+    // Validar código
+    if (!codigo.trim()) {
+        alert('El código es obligatorio');
+        e.preventDefault();
+        return;
+    }
+
+    // Validar nombre
+    if (nombre.trim().length < 3) {
+        alert('El nombre debe tener al menos 3 caracteres');
+        e.preventDefault();
+        return;
+    }
+
+    // Validar stock
+    if (stock < 0) {
+        alert('El stock no puede ser negativo');
+        e.preventDefault();
+        return;
+    }
+
+    // Validar stock mínimo
+    if (stockMinimo < 0) {
+        alert('El stock mínimo no puede ser negativo');
+        e.preventDefault();
+        return;
+    }
+
+    // Validar precio unitario
+    if (precioUnitario < 0) {
+        alert('El precio unitario no puede ser negativo');
+        e.preventDefault();
+        return;
+    }
+
+    // Validar que el stock mínimo no sea mayor que el stock inicial
+    if (stockMinimo > stock) {
+        if (!confirm('El stock mínimo es mayor que el stock inicial. ¿Desea continuar?')) {
+            e.preventDefault();
+            return;
+        }
+    }
+});
+
+// Generar código automático
+document.getElementById('nombre').addEventListener('blur', function() {
+    const codigo = document.getElementById('codigo');
+    if (!codigo.value) {
+        const nombre = this.value.trim();
+        if (nombre.length > 0) {
+            // Generar código basado en el nombre
+            const codigoGenerado = 'INS' + Math.random().toString(36).substr(2, 6).toUpperCase();
+            codigo.value = codigoGenerado;
+        }
+    }
+});
+
+// Calcular valor total del stock
+function calcularValorTotal() {
+    const stock = parseInt(document.getElementById('stock').value) || 0;
+    const precioUnitario = parseFloat(document.getElementById('precio_unitario').value) || 0;
+    const valorTotal = stock * precioUnitario;
+    
+    // Mostrar el valor total en algún lugar si es necesario
+    console.log('Valor total del stock:', valorTotal);
+}
+
+document.getElementById('stock').addEventListener('input', calcularValorTotal);
+document.getElementById('precio_unitario').addEventListener('input', calcularValorTotal);
+
+// Función para limpiar el formulario
+function limpiarFormulario() {
+    if (confirm('¿Está seguro de que desea limpiar todos los campos?')) {
+        document.getElementById('insumoForm').reset();
+    }
+}
+
+// Validación en tiempo real del código
+document.getElementById('codigo').addEventListener('input', function() {
+    this.value = this.value.toUpperCase();
+});
+</script>
+{% endblock %}

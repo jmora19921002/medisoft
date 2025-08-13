@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Medicamentos{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-pills me-2"></i>Gestión de Medicamentos
+        </h1>
+        <a href="{{ url_for('nuevo_medicamento') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Nuevo Medicamento
+        </a>
+    </div>
+
+    <!-- Alertas -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Tabla de Medicamentos -->
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Lista de Medicamentos</h6>
+        </div>
+        <div class="card-body">
+            {% if medicamentos %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped" id="medicamentosTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Principio Activo</th>
+                                <th>Presentación</th>
+                                <th>Stock</th>
+                                <th>Stock Mínimo</th>
+                                <th>Precio</th>
+                                <th>Vencimiento</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for medicamento in medicamentos %}
+                            <tr>
+                                <td><span class="badge bg-info">{{ medicamento.codigo }}</span></td>
+                                <td>
+                                    <strong>{{ medicamento.nombre }}</strong>
+                                    {% if medicamento.descripcion %}
+                                        <br><small class="text-muted">{{ medicamento.descripcion[:50] }}{% if medicamento.descripcion|length > 50 %}...{% endif %}</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ medicamento.principio_activo or 'N/A' }}</td>
+                                <td>{{ medicamento.presentacion or 'N/A' }}</td>
+                                <td>
+                                    {% if medicamento.stock <= medicamento.stock_minimo %}
+                                        <span class="badge bg-danger">{{ medicamento.stock }}</span>
+                                    {% elif medicamento.stock <= medicamento.stock_minimo * 2 %}
+                                        <span class="badge bg-warning">{{ medicamento.stock }}</span>
+                                    {% else %}
+                                        <span class="badge bg-success">{{ medicamento.stock }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ medicamento.stock_minimo }}</td>
+                                <td>${{ "%.2f"|format(medicamento.precio_unitario) }}</td>
+                                <td>
+                                    {% if medicamento.fecha_vencimiento %}
+                                        {% set dias_vencimiento = ((medicamento.fecha_vencimiento - fecha_actual).days) %}
+                                        {% if dias_vencimiento < 0 %}
+                                            <span class="badge bg-danger">Vencido</span>
+                                        {% elif dias_vencimiento <= 30 %}
+                                            <span class="badge bg-warning">{{ medicamento.fecha_vencimiento.strftime('%d/%m/%Y') }}</span>
+                                        {% else %}
+                                            <span class="badge bg-success">{{ medicamento.fecha_vencimiento.strftime('%d/%m/%Y') }}</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-secondary">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('editar_medicamento', id=medicamento.id) }}" 
+                                           class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                onclick="confirmarEliminacion('{{ medicamento.id }}', '{{ medicamento.nombre }}')" 
+                                                title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-pills fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay medicamentos registrados</h5>
+                    <p class="text-muted">Comienza agregando tu primer medicamento</p>
+                    <a href="{{ url_for('nuevo_medicamento') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Agregar Medicamento
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación de Eliminación -->
+<div class="modal fade" id="confirmarEliminacionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que quieres eliminar el medicamento <strong id="nombreMedicamento"></strong>?</p>
+                <p class="text-danger"><small>Esta acción no se puede deshacer.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="formEliminacion" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmarEliminacion(id, nombre) {
+    document.getElementById('nombreMedicamento').textContent = nombre;
+    document.getElementById('formEliminacion').action = `/medicamentos/${id}/eliminar`;
+    
+    const modal = new bootstrap.Modal(document.getElementById('confirmarEliminacionModal'));
+    modal.show();
+}
+
+// Inicializar DataTable
+$(document).ready(function() {
+    if (document.getElementById('medicamentosTable')) {
+        $('#medicamentosTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+            },
+            order: [[1, 'asc']], // Ordenar por nombre por defecto
+            pageLength: 25,
+            responsive: true
+        });
+    }
+});
+</script>
+{% endblock %}

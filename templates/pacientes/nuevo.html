@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Paciente - Sistema Médico{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="fas fa-user-plus me-2"></i>Nuevo Paciente
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{{ url_for('pacientes') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-edit me-2"></i>Información del Paciente
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="pacienteForm">
+                        <div class="row">
+                            <!-- Información Personal -->
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-user me-2"></i>Información Personal
+                                </h6>
+                                
+                                <div class="mb-3">
+                                    <label for="dni" class="form-label">DNI *</label>
+                                    <input type="text" class="form-control" id="dni" name="dni" required 
+                                           pattern="[0-9]{8}" maxlength="8" placeholder="12345678">
+                                    <div class="form-text">Ingrese el DNI sin puntos ni espacios</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="nombre" class="form-label">Nombre *</label>
+                                    <input type="text" class="form-control" id="nombre" name="nombre" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="apellido" class="form-label">Apellido *</label>
+                                    <input type="text" class="form-control" id="apellido" name="apellido" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento *</label>
+                                    <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="genero" class="form-label">Género *</label>
+                                    <select class="form-select" id="genero" name="genero" required>
+                                        <option value="">Seleccione...</option>
+                                        <option value="Masculino">Masculino</option>
+                                        <option value="Femenino">Femenino</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Información de Contacto -->
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-address-book me-2"></i>Información de Contacto
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label for="telefono" class="form-label">Teléfono</label>
+                                    <input type="tel" class="form-control" id="telefono" name="telefono" 
+                                           placeholder="+54 9 11 1234-5678">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           placeholder="paciente@email.com">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="direccion" class="form-label">Dirección</label>
+                                    <textarea class="form-control" id="direccion" name="direccion" rows="3" 
+                                              placeholder="Ingrese la dirección completa"></textarea>
+                                </div>
+
+                                <!-- Información Adicional -->
+                                <h6 class="text-primary mb-3 mt-4">
+                                    <i class="fas fa-notes-medical me-2"></i>Información Adicional
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label for="grupo_sanguineo" class="form-label">Grupo Sanguíneo</label>
+                                    <select class="form-select" id="grupo_sanguineo" name="grupo_sanguineo">
+                                        <option value="">Seleccione...</option>
+                                        <option value="A+">A+</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B-">B-</option>
+                                        <option value="AB+">AB+</option>
+                                        <option value="AB-">AB-</option>
+                                        <option value="O+">O+</option>
+                                        <option value="O-">O-</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="alergias" class="form-label">Alergias</label>
+                                    <textarea class="form-control" id="alergias" name="alergias" rows="2" 
+                                              placeholder="Liste las alergias conocidas"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="limpiarFormulario()">
+                                        <i class="fas fa-eraser me-2"></i>Limpiar
+                                    </button>
+                                    <a href="{{ url_for('pacientes') }}" class="btn btn-outline-danger">
+                                        <i class="fas fa-times me-2"></i>Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Guardar Paciente
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Validación del formulario
+document.getElementById('pacienteForm').addEventListener('submit', function(e) {
+    const dni = document.getElementById('dni').value;
+    const nombre = document.getElementById('nombre').value;
+    const apellido = document.getElementById('apellido').value;
+    const fechaNacimiento = document.getElementById('fecha_nacimiento').value;
+    const genero = document.getElementById('genero').value;
+
+    // Validar DNI
+    if (!/^\d{8}$/.test(dni)) {
+        alert('El DNI debe tener exactamente 8 dígitos numéricos');
+        e.preventDefault();
+        return;
+    }
+
+    // Validar nombre y apellido
+    if (nombre.trim().length < 2) {
+        alert('El nombre debe tener al menos 2 caracteres');
+        e.preventDefault();
+        return;
+    }
+
+    if (apellido.trim().length < 2) {
+        alert('El apellido debe tener al menos 2 caracteres');
+        e.preventDefault();
+        return;
+    }
+
+    // Validar fecha de nacimiento
+    const fechaNac = new Date(fechaNacimiento);
+    const hoy = new Date();
+    const edad = hoy.getFullYear() - fechaNac.getFullYear();
+    
+    if (edad < 0 || edad > 120) {
+        alert('La fecha de nacimiento no es válida');
+        e.preventDefault();
+        return;
+    }
+
+    // Validar género
+    if (!genero) {
+        alert('Debe seleccionar un género');
+        e.preventDefault();
+        return;
+    }
+});
+
+// Validación en tiempo real del DNI
+document.getElementById('dni').addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g, ''); // Solo números
+    if (this.value.length > 8) {
+        this.value = this.value.slice(0, 8);
+    }
+});
+
+// Validación en tiempo real del teléfono
+document.getElementById('telefono').addEventListener('input', function() {
+    this.value = this.value.replace(/[^\d\s\-\+\(\)]/g, ''); // Solo números, espacios, guiones, paréntesis y +
+});
+
+// Función para limpiar el formulario
+function limpiarFormulario() {
+    if (confirm('¿Está seguro de que desea limpiar todos los campos?')) {
+        document.getElementById('pacienteForm').reset();
+    }
+}
+
+// Calcular edad automáticamente
+document.getElementById('fecha_nacimiento').addEventListener('change', function() {
+    const fechaNac = new Date(this.value);
+    const hoy = new Date();
+    const edad = hoy.getFullYear() - fechaNac.getFullYear();
+    
+    if (edad >= 0 && edad <= 120) {
+        console.log('Edad calculada:', edad, 'años');
+    }
+});
+</script>
+{% endblock %}

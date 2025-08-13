@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Cuentas por Cobrar</h2>
+  <a href="{{ url_for('nueva_cuenta_por_cobrar') }}" class="btn btn-success mb-3">Nueva Cuenta por Cobrar</a>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Paciente</th>
+        <th>Concepto</th>
+        <th>Monto</th>
+        <th>Fecha</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cuenta in cuentas %}
+      <tr>
+        <td>{{ cuenta.id }}</td>
+        <td>{{ cuenta.paciente.nombre }} {{ cuenta.paciente.apellido }}</td>
+        <td>{{ cuenta.concepto }}</td>
+        <td>{{ cuenta.monto }}</td>
+        <td>{{ cuenta.fecha.strftime('%d/%m/%Y') }}</td>
+        <td>{{ cuenta.estado }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

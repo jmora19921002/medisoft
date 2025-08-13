@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Usuarios{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white d-flex align-items-center">
+            <i class="fas fa-users me-2"></i>
+            <h5 class="mb-0">Gestión de Usuarios</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3 text-end">
+                <a href="{{ url_for('nuevo_usuario') }}" class="btn btn-success">
+                    <i class="fas fa-user-plus me-1"></i> Nuevo Usuario
+                </a>
+            </div>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Nombre</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for usuario in usuarios %}
+                    <tr>
+                        <td>{{ usuario.username }}</td>
+                        <td>{{ usuario.email }}</td>
+                        <td>{{ usuario.rol|capitalize }}</td>
+                        <td><span class="badge bg-success">Activo</span></td>
+                        <td>
+                            <a href="{{ url_for('editar_usuario', id=usuario.id) }}" class="btn btn-sm btn-primary me-1" title="Editar"><i class="fas fa-edit"></i></a>
+                            {% if usuario.username != 'admin' %}
+                            <form method="POST" action="{{ url_for('eliminar_usuario', id=usuario.id) }}" style="display:inline;" onsubmit="return confirm('¿Seguro que desea eliminar este usuario?');">
+                                <button type="submit" class="btn btn-sm btn-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="5" class="text-center">No hay usuarios registrados.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {# Aquí puedes mostrar mensajes flash o la tabla real de usuarios #}
+        </div>
+    </div>
+</div>
+{% endblock %}

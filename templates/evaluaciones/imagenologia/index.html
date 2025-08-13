@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Evaluaciones de Imagenología</h2>
+  <a href="{{ url_for('nuevo_imagenologia') }}" class="btn btn-primary mb-3">Nuevo Examen de Imagenología</a>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Paciente</th>
+        <th>Tipo de Examen</th>
+        <th>Fecha</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for examen in examenes %}
+      <tr>
+        <td>{{ examen.id }}</td>
+        <td>{{ examen.paciente.nombre }} {{ examen.paciente.apellido }}</td>
+        <td>{{ examen.tipo_examen }}</td>
+        <td>{{ examen.fecha_solicitud.strftime('%d/%m/%Y') if examen.fecha_solicitud else '' }}</td>
+        <td>
+          <a href="#" class="btn btn-sm btn-info">Ver</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Nuevo Examen de Imagenología</h2>
+  <form method="post">
+    <div class="mb-3">
+      <label for="paciente_id" class="form-label">Paciente</label>
+      <select class="form-select" id="paciente_id" name="paciente_id" required>
+        {% for paciente in pacientes %}
+        <option value="{{ paciente.id }}">{{ paciente.nombre }} {{ paciente.apellido }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="tipo_examen" class="form-label">Tipo de Examen</label>
+      <input type="text" class="form-control" id="tipo_examen" name="tipo_examen" required>
+    </div>
+    <div class="mb-3">
+      <label for="fecha_solicitud" class="form-label">Fecha de Solicitud</label>
+      <input type="date" class="form-control" id="fecha_solicitud" name="fecha_solicitud" required>
+    </div>
+    <div class="mb-3">
+      <label for="valores_resultados" class="form-label">Resultados</label>
+      <textarea class="form-control" id="valores_resultados" name="valores_resultados"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a href="{{ url_for('evaluaciones_imagenologia') }}" class="btn btn-secondary">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

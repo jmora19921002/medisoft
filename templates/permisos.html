@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Gestión de Permisos{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Gestión de Permisos de Usuarios</h2>
+    <form method="POST">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        {% for permiso in permisos %}
+                            <th>{{ permiso.modulo }}<br><small>{{ permiso.accion }}</small></th>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <th></th>
+                        {% for permiso in permisos %}
+                            <th>
+                                <span class="badge bg-success">Crear</span>
+                                <span class="badge bg-primary">Leer</span>
+                                <span class="badge bg-warning text-dark">Actualizar</span>
+                                <span class="badge bg-danger">Eliminar</span>
+                            </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in usuarios %}
+                    <tr>
+                        <td>{{ usuario.username }}</td>
+                        {% for permiso in permisos %}
+                        {% set pu = permisos_usuario[usuario.id][permiso.id] %}
+                        <td>
+                            <input type="checkbox" name="crear_permiso_{{ usuario.id }}_{{ permiso.id }}" {% if pu and pu.puede_crear %}checked{% endif %}> Crear<br>
+                            <input type="checkbox" name="leer_permiso_{{ usuario.id }}_{{ permiso.id }}" {% if pu and pu.puede_leer %}checked{% endif %}> Leer<br>
+                            <input type="checkbox" name="actualizar_permiso_{{ usuario.id }}_{{ permiso.id }}" {% if pu and pu.puede_actualizar %}checked{% endif %}> Actualizar<br>
+                            <input type="checkbox" name="eliminar_permiso_{{ usuario.id }}_{{ permiso.id }}" {% if pu and pu.puede_eliminar %}checked{% endif %}> Eliminar
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <button type="submit" class="btn btn-success">Guardar Cambios</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Nueva Factura</h2>
+  <form method="post" id="facturaForm">
+    <div class="mb-3">
+      <label for="numero_factura" class="form-label">Número de Factura</label>
+      <input type="text" class="form-control" id="numero_factura" name="numero_factura" required>
+    </div>
+    <div class="mb-3">
+      <label for="paciente_id" class="form-label">Paciente</label>
+      <select class="form-select" id="paciente_id" name="paciente_id" required>
+        {% for paciente in pacientes %}
+        <option value="{{ paciente.id }}">{{ paciente.nombre }} {{ paciente.apellido }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="tipo_cliente" class="form-label">Tipo de Cliente</label>
+      <select class="form-select" id="tipo_cliente" name="tipo_cliente" required>
+        <option value="natural">Persona Natural</option>
+        <option value="seguro">Seguro</option>
+        <option value="empresa">Empresa</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="fecha" class="form-label">Fecha</label>
+      <input type="date" class="form-control" id="fecha" name="fecha">
+    </div>
+    <div class="mb-3">
+      <label for="estado" class="form-label">Estado</label>
+      <select class="form-select" id="estado" name="estado">
+        <option value="pendiente">Pendiente</option>
+        <option value="pagada">Pagada</option>
+        <option value="anulada">Anulada</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Ítems a facturar</label>
+      <div class="border rounded p-2 mb-2" style="background:#f8f9fa;">
+        <ul id="itemsTree" class="list-unstyled">
+          <!-- Treeview de items -->
+        </ul>
+        <input type="hidden" name="items_factura" id="items_factura">
+        <button type="button" class="btn btn-outline-primary btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#modalItem">Adicionar ítem</button>
+      </div>
+    </div>
+    <div class="mb-3">
+      <label for="concepto" class="form-label">Concepto global</label>
+      <input type="text" class="form-control" id="concepto" name="concepto">
+    </div>
+    <div class="mb-3">
+      <label for="impuesto" class="form-label">Impuesto (%)</label>
+      <input type="number" step="0.01" class="form-control" id="impuesto" name="impuesto" value="0">
+    </div>
+    <div class="mb-3">
+      <label for="monto" class="form-label">Monto total</label>
+      <input type="number" step="0.01" class="form-control" id="monto" name="monto" required readonly>
+    </div>
+    <div class="mb-3">
+      <label for="metodo_pago" class="form-label">Método de Pago</label>
+      <select class="form-select" id="metodo_pago" name="metodo_pago">
+        <option value="">A crédito</option>
+        <option value="efectivo">Efectivo</option>
+        <option value="tarjeta">Tarjeta</option>
+        <option value="transferencia">Transferencia</option>
+        <option value="deposito">Depósito</option>
+        <option value="cheque">Cheque</option>
+        <option value="otro">Otro</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a href="{{ url_for('facturacion') }}" class="btn btn-secondary">Cancelar</a>
+  </form>
+
+  <!-- Modal para adicionar ítem -->
+  <div class="modal fade" id="modalItem" tabindex="-1" aria-labelledby="modalItemLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalItemLabel">Adicionar ítem</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="tipo_item" class="form-label">Tipo de ítem</label>
+            <select class="form-select" id="tipo_item">
+              <option value="medicamento">Medicamento</option>
+              <option value="insumo">Insumo</option>
+              <option value="honorario">Honorario</option>
+              <option value="servicio">Servicio</option>
+            </select>
+          </div>
+          <div class="mb-3" id="itemSelectContainer">
+            <!-- Aquí se cargará el select de items -->
+          </div>
+          <div class="mb-3">
+            <label for="cantidad_item" class="form-label">Cantidad</label>
+            <input type="number" class="form-control" id="cantidad_item" value="1" min="1">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="btnAgregarItem">Agregar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    var medicamentos = '{{ medicamentos|tojson|safe }}';
+    var insumos = '{{ insumos|tojson|safe }}';
+    var honorarios = '{{ honorarios|tojson|safe }}';
+    var servicios = '{{ servicios|tojson|safe }}';
+
+    var itemsFactura = [];
+
+    function renderItemsTree() {
+      var ul = document.getElementById('itemsTree');
+      ul.innerHTML = '';
+      var total = 0;
+      itemsFactura.forEach(function(item, idx) {
+        var li = document.createElement('li');
+        li.innerHTML = '<b>' + item.tipo.charAt(0).toUpperCase() + item.tipo.slice(1) + ':</b> ' + item.nombre + ' x' + item.cantidad + " <span class='text-muted'>(" + '$' + item.precio.toFixed(2) + " c/u)</span> <b>= $" + (item.precio*item.cantidad).toFixed(2) + "</b> <button type='button' class='btn btn-sm btn-danger ms-2' onclick='eliminarItem(" + idx + ")'>Quitar</button>";
+        ul.appendChild(li);
+        total += item.precio * item.cantidad;
+      });
+      // Calcular impuesto si aplica
+      var impuesto = parseFloat(document.getElementById('impuesto').value) || 0;
+      var totalConImpuesto = total;
+      if (impuesto > 0) {
+        totalConImpuesto = total + (total * impuesto / 100);
+      }
+      document.getElementById('monto').value = totalConImpuesto.toFixed(2);
+      document.getElementById('items_factura').value = JSON.stringify(itemsFactura);
+    }
+
+    function eliminarItem(idx) {
+      itemsFactura.splice(idx, 1);
+      renderItemsTree();
+    }
+
+    function cargarSelectItems(tipo) {
+      var data = [];
+      if (tipo === 'medicamento') data = medicamentos;
+      else if (tipo === 'insumo') data = insumos;
+      else if (tipo === 'honorario') data = honorarios;
+      else if (tipo === 'servicio') data = servicios;
+      var html = "<label class='form-label'>" + tipo.charAt(0).toUpperCase() + tipo.slice(1) + "</label><select class='form-select' id='item_id'>";
+      data.forEach(function(i) {
+        html += "<option value='" + i.id + "' data-precio='" + i.precio + "'>" + i.nombre + " ($" + i.precio.toFixed(2) + ")</option>";
+      });
+      html += '</select>';
+      document.getElementById('itemSelectContainer').innerHTML = html;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('tipo_item').addEventListener('change', function() {
+        cargarSelectItems(this.value);
+      });
+      cargarSelectItems('medicamento');
+
+      document.getElementById('btnAgregarItem').addEventListener('click', function() {
+        var tipo = document.getElementById('tipo_item').value;
+        var select = document.getElementById('item_id');
+        var id = parseInt(select.value);
+        var nombre = select.options[select.selectedIndex].text.split(' ($')[0];
+        var precio = parseFloat(select.options[select.selectedIndex].getAttribute('data-precio'));
+        var cantidad = parseInt(document.getElementById('cantidad_item').value);
+        itemsFactura.push({ tipo: tipo, id: id, nombre: nombre, precio: precio, cantidad: cantidad });
+        renderItemsTree();
+        var modal = bootstrap.Modal.getInstance(document.getElementById('modalItem'));
+        modal.hide();
+      });
+
+      // Recalcular total al cambiar impuesto
+      document.getElementById('impuesto').addEventListener('input', function() {
+        renderItemsTree();
+      });
+
+      // Inicializar treeview al cargar
+      renderItemsTree();
+    });
+  </script>
+</div>
+{% endblock %}

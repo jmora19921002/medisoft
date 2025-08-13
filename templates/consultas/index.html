@@ -1,0 +1,594 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2"><i class="fas fa-stethoscope me-2"></i>Consultas Médicas</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{{ url_for('nueva_consulta') }}" class="btn btn-success">
+                <i class="fas fa-plus me-2"></i>Nueva Consulta
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros y Búsqueda -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text" id="searchInput" class="form-control" placeholder="Buscar por paciente, médico o motivo...">
+                <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select id="filterMedico" class="form-select">
+                <option value="">Todos los médicos</option>
+                {% for medico in medicos %}
+                <option value="{{ medico.id }}">{{ medico.nombre }} {{ medico.apellido }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select id="filterEstado" class="form-select">
+                <option value="">Todas las consultas</option>
+                <option value="reciente">Últimas 24h</option>
+                <option value="semana">Última semana</option>
+                <option value="mes">Último mes</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Tabla de Consultas -->
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover" id="consultasTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Paciente</th>
+                            <th>Médico</th>
+                            <th>Fecha</th>
+                            <th>Motivo</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for consulta in consultas %}
+                        <tr>
+                            <td>{{ consulta.id }}</td>
+                            <td>
+                                <strong>{{ consulta.paciente.nombre }} {{ consulta.paciente.apellido }}</strong><br>
+                                <small class="text-muted">DNI: {{ consulta.paciente.dni }}</small>
+                            </td>
+                            <td>
+                                <strong>{{ consulta.medico.nombre }} {{ consulta.medico.apellido }}</strong><br>
+                                <small class="text-muted">{{ consulta.medico.especialidad }}</small>
+                            </td>
+                            <td>
+                                {{ consulta.fecha_consulta.strftime('%d/%m/%Y') }}<br>
+                                <small class="text-muted">{{ consulta.fecha_consulta.strftime('%H:%M') }}</small>
+                            </td>
+                            <td>
+                                <div class="text-truncate" style="max-width: 200px;" title="{{ consulta.motivo }}">
+                                    {{ consulta.motivo }}
+                                </div>
+                            </td>
+                            <td>
+                                {% if consulta.tratamiento_aplicado %}
+                                <span class="badge bg-success">Tratado</span>
+                                {% else %}
+                                <span class="badge bg-warning">Pendiente</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                            onclick="verConsulta('{{ consulta.id }}')" 
+                                            title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-warning" 
+                                            onclick="editarConsulta('{{ consulta.id }}')" 
+                                            title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            onclick="eliminarConsulta('{{ consulta.id }}')" 
+                                            title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox fa-3x mb-3"></i>
+                                <p>No hay consultas registradas</p>
+                                <a href="{{ url_for('nueva_consulta') }}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>Registrar Primera Consulta
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ consultas|length }}</h4>
+                            <p class="mb-0">Total Consultas</p>
+                        </div>
+                        <i class="fas fa-stethoscope fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ consultas|selectattr('tratamiento_aplicado')|list|length }}</h4>
+                            <p class="mb-0">Con Tratamiento</p>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ consultas|rejectattr('tratamiento_aplicado')|list|length }}</h4>
+                            <p class="mb-0">Pendientes</p>
+                        </div>
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ medicos|length }}</h4>
+                            <p class="mb-0">Médicos Activos</p>
+                        </div>
+                        <i class="fas fa-user-md fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Ver Consulta -->
+<div class="modal fade" id="consultaModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye me-2"></i>Detalles de la Consulta
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="consultaModalBody">
+                <!-- Contenido del modal -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary me-2" onclick="imprimirConsulta()">
+                    <i class="fas fa-print me-2"></i>Imprimir Consulta
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.min-height-100 {
+    min-height: 100px;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #e7f3ff;
+    color: #0c63e4;
+}
+
+.accordion-button:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.card-header h6 {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.modal-xl {
+    max-width: 1200px;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Búsqueda en tiempo real
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    const searchTerm = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#consultasTable tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+
+// Filtro por médico
+document.getElementById('filterMedico').addEventListener('change', function() {
+    const medicoId = this.value;
+    const rows = document.querySelectorAll('#consultasTable tbody tr');
+    
+    rows.forEach(row => {
+        if (!medicoId || row.querySelector('td:nth-child(3)').textContent.includes(medicoId)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// Filtro por estado
+document.getElementById('filterEstado').addEventListener('change', function() {
+    const estado = this.value;
+    const rows = document.querySelectorAll('#consultasTable tbody tr');
+    const now = new Date();
+    
+    rows.forEach(row => {
+        if (!estado) {
+            row.style.display = '';
+            return;
+        }
+        
+        const fechaCell = row.querySelector('td:nth-child(4)');
+        if (!fechaCell) return;
+        
+        const fechaTexto = fechaCell.textContent;
+        const fecha = new Date(fechaTexto.split('/').reverse().join('-'));
+        let mostrar = false;
+        
+        switch(estado) {
+            case 'reciente':
+                mostrar = (now - fecha) <= 24 * 60 * 60 * 1000;
+                break;
+            case 'semana':
+                mostrar = (now - fecha) <= 7 * 24 * 60 * 60 * 1000;
+                break;
+            case 'mes':
+                mostrar = (now - fecha) <= 30 * 24 * 60 * 60 * 1000;
+                break;
+        }
+        
+        row.style.display = mostrar ? '' : 'none';
+    });
+});
+
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('filterMedico').value = '';
+    document.getElementById('filterEstado').value = '';
+    
+    const rows = document.querySelectorAll('#consultasTable tbody tr');
+    rows.forEach(row => row.style.display = '');
+}
+
+function verConsulta(id) {
+    // Mostrar loading
+    document.getElementById('consultaModalBody').innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2">Cargando detalles de la consulta...</p>
+        </div>
+    `;
+    
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('consultaModal'));
+    modal.show();
+    
+    // Fetch datos de la consulta
+    fetch(`/consultas/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            mostrarDetallesConsulta(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('consultaModalBody').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error al cargar los detalles de la consulta. Por favor, intente nuevamente.
+                </div>
+            `;
+        });
+}
+
+function calcularEdad(fechaNacimiento) {
+    if (!fechaNacimiento) return null;
+    
+    const fechaNac = new Date(fechaNacimiento.split('/').reverse().join('-'));
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - fechaNac.getFullYear();
+    const mes = hoy.getMonth() - fechaNac.getMonth();
+    
+    if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
+        edad--;
+    }
+    
+    return edad;
+}
+
+function mostrarDetallesConsulta(consulta) {
+    const modalBody = document.getElementById('consultaModalBody');
+    const edad = calcularEdad(consulta.paciente.fecha_nacimiento);
+    
+    let contenido = `
+        <div class="row">
+            <!-- Información del Paciente -->
+            <div class="col-md-6">
+                <div class="card border-primary mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0"><i class="fas fa-user-injured me-2"></i>Información del Paciente</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1"><strong>Nombre:</strong> ${consulta.paciente.nombre} ${consulta.paciente.apellido}</p>
+                        <p class="mb-1"><strong>DNI:</strong> ${consulta.paciente.dni}</p>
+                        <p class="mb-1"><strong>Edad:</strong> ${edad ? `${edad} años` : 'No especificada'}</p>
+                        <p class="mb-1"><strong>Teléfono:</strong> ${consulta.paciente.telefono || 'No especificado'}</p>
+                        <p class="mb-1"><strong>Email:</strong> ${consulta.paciente.email || 'No especificado'}</p>
+                        <p class="mb-1"><strong>Dirección:</strong> ${consulta.paciente.direccion || 'No especificada'}</p>
+                        <p class="mb-0"><strong>Fecha de Nacimiento:</strong> ${consulta.paciente.fecha_nacimiento || 'No especificada'}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información del Médico -->
+            <div class="col-md-6">
+                <div class="card border-success mb-3">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="fas fa-user-md me-2"></i>Información del Médico</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1"><strong>Nombre:</strong> Dr. ${consulta.medico.nombre} ${consulta.medico.apellido}</p>
+                        <p class="mb-1"><strong>Especialidad:</strong> ${consulta.medico.especialidad}</p>
+                        <p class="mb-1"><strong>Teléfono:</strong> ${consulta.medico.telefono || 'No especificado'}</p>
+                        <p class="mb-0"><strong>Email:</strong> ${consulta.medico.email || 'No especificado'}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Detalles de la Consulta -->
+            <div class="col-12">
+                <div class="card border-info mb-3">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="fas fa-stethoscope me-2"></i>Detalles de la Consulta</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Fecha y Hora:</strong> ${consulta.fecha_consulta}</p>
+                                <p class="mb-1"><strong>Motivo:</strong></p>
+                                <div class="p-2 bg-light rounded border">${consulta.motivo}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Observaciones:</strong></p>
+                                <div class="p-2 bg-light rounded border min-height-100">${consulta.observaciones || 'No hay observaciones'}</div>
+                            </div>
+                        </div>
+                        ${consulta.ordenes_medicas ? `
+                        <div class="mt-3">
+                            <p class="mb-1"><strong>Órdenes Médicas:</strong></p>
+                            <div class="p-2 bg-light rounded border">${consulta.ordenes_medicas}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Exámenes Realizados -->
+            <div class="col-md-6">
+                <div class="card border-warning mb-3">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="fas fa-flask me-2"></i>Exámenes Realizados</h6>
+                    </div>
+                    <div class="card-body">
+                        ${consulta.examenes_realizados ? `
+                            <div class="p-2 bg-light rounded border mb-2">${consulta.examenes_realizados}</div>
+                        ` : '<p class="text-muted">No se realizaron exámenes</p>'}
+                        
+                        ${consulta.examenes && consulta.examenes.length > 0 ? `
+                            <h6 class="mt-3 mb-2">Historial de Exámenes:</h6>
+                            <div class="accordion" id="accordionExamenes">
+                        ` : ''}
+                        
+                        ${consulta.examenes ? consulta.examenes.map((examen, index) => `
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingExamen${index}">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExamen${index}">
+                                        ${examen.tipo_examen} - ${examen.estado}
+                                    </button>
+                                </h2>
+                                <div id="collapseExamen${index}" class="accordion-collapse collapse" data-bs-parent="#accordionExamenes">
+                                    <div class="accordion-body">
+                                        <p><strong>Estado:</strong> <span class="badge bg-${examen.estado === 'completado' ? 'success' : examen.estado === 'en_proceso' ? 'warning' : 'secondary'}">${examen.estado}</span></p>
+                                        <p><strong>Fecha Solicitud:</strong> ${examen.fecha_solicitud || 'No especificada'}</p>
+                                        ${examen.fecha_realizacion ? `<p><strong>Fecha Realización:</strong> ${examen.fecha_realizacion}</p>` : ''}
+                                        ${examen.valores_resultados ? `<p><strong>Resultados:</strong> ${examen.valores_resultados}</p>` : ''}
+                                        ${examen.observaciones ? `<p><strong>Observaciones:</strong> ${examen.observaciones}</p>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('') : ''}
+                        
+                        ${consulta.examenes && consulta.examenes.length > 0 ? '</div>' : ''}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tratamiento Aplicado -->
+            <div class="col-md-6">
+                <div class="card border-success mb-3">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="fas fa-heartbeat me-2"></i>Tratamiento Aplicado</h6>
+                    </div>
+                    <div class="card-body">
+                        ${consulta.tratamiento_aplicado ? `
+                            <div class="p-2 bg-light rounded border mb-2">${consulta.tratamiento_aplicado}</div>
+                        ` : '<p class="text-muted">No se aplicó tratamiento</p>'}
+                        
+                        ${consulta.tratamientos && consulta.tratamientos.length > 0 ? `
+                            <h6 class="mt-3 mb-2">Historial de Tratamientos:</h6>
+                            <div class="accordion" id="accordionTratamientos">
+                        ` : ''}
+                        
+                        ${consulta.tratamientos ? consulta.tratamientos.map((tratamiento, index) => `
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingTratamiento${index}">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTratamiento${index}">
+                                        Tratamiento #${tratamiento.id} - ${tratamiento.estado}
+                                    </button>
+                                </h2>
+                                <div id="collapseTratamiento${index}" class="accordion-collapse collapse" data-bs-parent="#accordionTratamientos">
+                                    <div class="accordion-body">
+                                        <p><strong>Estado:</strong> <span class="badge bg-${tratamiento.estado === 'activo' ? 'success' : tratamiento.estado === 'completado' ? 'primary' : 'warning'}">${tratamiento.estado}</span></p>
+                                        <p><strong>Fecha Inicio:</strong> ${tratamiento.fecha_inicio || 'No especificada'}</p>
+                                        ${tratamiento.fecha_fin ? `<p><strong>Fecha Fin:</strong> ${tratamiento.fecha_fin}</p>` : ''}
+                                        ${tratamiento.medicamentos_suministrados ? `<p><strong>Medicamentos:</strong> ${tratamiento.medicamentos_suministrados}</p>` : ''}
+                                        ${tratamiento.instrumentos_utilizados ? `<p><strong>Instrumentos:</strong> ${tratamiento.instrumentos_utilizados}</p>` : ''}
+                                        ${tratamiento.observaciones ? `<p><strong>Observaciones:</strong> ${tratamiento.observaciones}</p>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('') : ''}
+                        
+                        ${consulta.tratamientos && consulta.tratamientos.length > 0 ? '</div>' : ''}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    modalBody.innerHTML = contenido;
+}
+
+function editarConsulta(id) {
+    // Redirigir a la página de edición
+    window.location.href = `/consultas/editar/${id}`;
+}
+
+function eliminarConsulta(id) {
+    if (confirm('¿Estás seguro de que quieres eliminar esta consulta?')) {
+        // Aquí implementarías la lógica para eliminar la consulta
+        alert('Funcionalidad de eliminación en desarrollo');
+    }
+}
+
+function imprimirConsulta() {
+    const modalBody = document.getElementById('consultaModalBody');
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>Consulta Médica - Detalles</title>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; }
+                    h1, h2, h3, h4, h5, h6 { color: #007bff; }
+                    .card { margin-bottom: 15px; border: 1px solid #ddd; }
+                    .card-header { background-color: #e7f3ff; color: #0c63e4; padding: 10px 15px; border-bottom: 1px solid #ddd; }
+                    .card-body { padding: 15px; }
+                    .badge { font-size: 0.9em; padding: 5px 10px; border-radius: 5px; }
+                    .text-muted { color: #6c757d; }
+                    .bg-light { background-color: #f8f9fa; }
+                    .border { border: 1px solid #dee2e6; }
+                    .rounded { border-radius: 0.375rem; }
+                    .p-2 { padding: 0.5rem; }
+                    .mb-2 { margin-bottom: 0.5rem; }
+                    .mt-3 { margin-top: 1rem; }
+                    .text-center { text-align: center; }
+                    .py-4 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+                    .mb-3 { margin-bottom: 1rem; }
+                    .me-2 { margin-right: 0.5rem; }
+                    .btn { display: inline-block; padding: 0.375rem 0.75rem; border: 1px solid transparent; border-radius: 0.375rem; text-decoration: none; }
+                    .btn-primary { background-color: #007bff; border-color: #007bff; color: white; }
+                    .btn-secondary { background-color: #6c757d; border-color: #6c757d; color: white; }
+                    .d-flex { display: flex; }
+                    .justify-content-between { justify-content: space-between; }
+                    .align-items-center { align-items: center; }
+                    .pt-3 { padding-top: 1rem; }
+                    .pb-2 { padding-bottom: 0.5rem; }
+                    .border-bottom { border-bottom: 1px solid #dee2e6; }
+                    .h2 { font-size: 1.5rem; }
+                    .container-fluid { width: 100%; padding-right: 15px; padding-left: 15px; margin-right: auto; margin-left: auto; }
+                    .row { display: flex; flex-wrap: wrap; margin-right: -7.5px; margin-left: -7.5px; }
+                    .col-md-6 { flex: 0 0 50%; max-width: 50%; padding-right: 7.5px; padding-left: 7.5px; }
+                    .col-12 { flex: 0 0 100%; max-width: 100%; padding-right: 7.5px; padding-left: 7.5px; }
+                    .border-primary { border-color: #007bff; }
+                    .border-success { border-color: #28a745; }
+                    .border-info { border-color: #17a2b8; }
+                    .border-warning { border-color: #ffc107; }
+                    .bg-primary { background-color: #007bff; }
+                    .bg-success { background-color: #28a745; }
+                    .bg-info { background-color: #17a2b8; }
+                    .bg-warning { background-color: #ffc107; }
+                    .text-white { color: white; }
+                    .text-dark { color: #343a40; }
+                    .min-height-100 { min-height: 100px; }
+                    @media print {
+                        .btn { display: none; }
+                        .modal-footer { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container-fluid">
+                    <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">Consulta Médica - Detalles</h1>
+                        <button class="btn btn-primary me-2" onclick="window.print()">
+                            Imprimir
+                        </button>
+                    </div>
+                    ${modalBody.innerHTML}
+                </div>
+            </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    
+    setTimeout(() => {
+        printWindow.print();
+    }, 500);
+}
+</script>
+{% endblock %}

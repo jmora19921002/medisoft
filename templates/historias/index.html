@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2"><i class="fas fa-notes-medical me-2"></i>Historias Médicas</h1>
+    </div>
+
+    <div class="row">
+        <!-- Consultas -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Consultas
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ consultas_count|default(0) }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-stethoscope fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('consultas') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-eye me-1"></i>Ver Consultas
+                        </a>
+                        <a href="{{ url_for('nueva_consulta') }}" class="btn btn-success btn-sm">
+                            <i class="fas fa-plus me-1"></i>Nueva Consulta
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emergencias -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Emergencias
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ emergencias_count|default(0) }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-ambulance fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('emergencias') }}" class="btn btn-danger btn-sm">
+                            <i class="fas fa-eye me-1"></i>Ver Emergencias
+                        </a>
+                        <a href="{{ url_for('nueva_emergencia') }}" class="btn btn-warning btn-sm">
+                            <i class="fas fa-plus me-1"></i>Nueva Emergencia
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tratamientos -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Tratamientos
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ tratamientos_count|default(0) }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-heartbeat fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('tratamientos') }}" class="btn btn-success btn-sm">
+                            <i class="fas fa-eye me-1"></i>Ver Tratamientos
+                        </a>
+                        <a href="{{ url_for('nuevo_tratamiento') }}" class="btn btn-info btn-sm">
+                            <i class="fas fa-plus me-1"></i>Nuevo Tratamiento
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exámenes -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Exámenes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ examenes_count|default(0) }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-flask fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('examenes') }}" class="btn btn-info btn-sm">
+                            <i class="fas fa-eye me-1"></i>Ver Exámenes
+                        </a>
+                        <a href="{{ url_for('nuevo_examen') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i>Nuevo Examen
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acceso Rápido -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Acceso Rápido</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('nueva_consulta') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-stethoscope fa-2x mb-2"></i><br>
+                                Nueva Consulta
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('nueva_emergencia') }}" class="btn btn-outline-danger w-100">
+                                <i class="fas fa-ambulance fa-2x mb-2"></i><br>
+                                Nueva Emergencia
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('nuevo_tratamiento') }}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-heartbeat fa-2x mb-2"></i><br>
+                                Nuevo Tratamiento
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('nuevo_examen') }}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-flask fa-2x mb-2"></i><br>
+                                Nuevo Examen
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información del Sistema -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información del Sistema</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Funcionalidades Disponibles:</h6>
+                            <ul>
+                                <li><strong>Consultas:</strong> Registro de consultas médicas con motivo, exámenes, tratamientos y órdenes médicas</li>
+                                <li><strong>Emergencias:</strong> Gestión de casos de emergencia con medicamentos, instrumentos y tiempo de observación</li>
+                                <li><strong>Tratamientos:</strong> Seguimiento de tratamientos médicos con asignación de enfermeras</li>
+                                <li><strong>Exámenes:</strong> Solicitud y resultados de exámenes médicos con valores específicos</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Características:</h6>
+                            <ul>
+                                <li>Registro completo de historias médicas</li>
+                                <li>Seguimiento de pacientes</li>
+                                <li>Asignación de personal médico</li>
+                                <li>Control de medicamentos e instrumentos</li>
+                                <li>Registro de resultados de exámenes</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

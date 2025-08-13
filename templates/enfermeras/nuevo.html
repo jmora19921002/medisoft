@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Enfermera - Sistema Médico{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="fas fa-user-nurse me-2"></i>Nueva Enfermera
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{{ url_for('enfermeras') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-edit me-2"></i>Información de la Enfermera
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="enfermeraForm">
+                        <div class="row">
+                            <!-- Información Personal -->
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-user me-2"></i>Información Personal
+                                </h6>
+                                
+                                <div class="mb-3">
+                                    <label for="dni" class="form-label">DNI *</label>
+                                    <input type="text" class="form-control" id="dni" name="dni" required 
+                                           pattern="[0-9]{8}" maxlength="8" placeholder="12345678">
+                                    <div class="form-text">Ingrese el DNI sin puntos ni espacios</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="nombre" class="form-label">Nombre *</label>
+                                    <input type="text" class="form-control" id="nombre" name="nombre" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="apellido" class="form-label">Apellido *</label>
+                                    <input type="text" class="form-control" id="apellido" name="apellido" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="especialidad" class="form-label">Especialidad</label>
+                                    <select class="form-select" id="especialidad" name="especialidad">
+                                        <option value="">Seleccione una especialidad...</option>
+                                        <option value="Enfermería General">Enfermería General</option>
+                                        <option value="Enfermería Pediátrica">Enfermería Pediátrica</option>
+                                        <option value="Enfermería Obstétrica">Enfermería Obstétrica</option>
+                                        <option value="Enfermería Quirúrgica">Enfermería Quirúrgica</option>
+                                        <option value="Enfermería de Urgencias">Enfermería de Urgencias</option>
+                                        <option value="Enfermería de Cuidados Intensivos">Enfermería de Cuidados Intensivos</option>
+                                        <option value="Enfermería Comunitaria">Enfermería Comunitaria</option>
+                                        <option value="Enfermería Geriátrica">Enfermería Geriátrica</option>
+                                        <option value="Enfermería Psiquiátrica">Enfermería Psiquiátrica</option>
+                                        <option value="Enfermería Oncológica">Enfermería Oncológica</option>
+                                        <option value="Enfermería Cardíaca">Enfermería Cardíaca</option>
+                                        <option value="Enfermería Neonatal">Enfermería Neonatal</option>
+                                        <option value="Otra">Otra</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3" id="otraEspecialidadDiv" style="display: none;">
+                                    <label for="otra_especialidad" class="form-label">Especificar Especialidad</label>
+                                    <input type="text" class="form-control" id="otra_especialidad" name="otra_especialidad">
+                                </div>
+                            </div>
+
+                            <!-- Información de Contacto -->
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-address-book me-2"></i>Información de Contacto
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label for="telefono" class="form-label">Teléfono</label>
+                                    <input type="tel" class="form-control" id="telefono" name="telefono"
+                                           placeholder="+54 9 11 1234-5678">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email"
+                                           placeholder="enfermera@email.com">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Información Adicional</label>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Los campos marcados con * son obligatorios. Los demás son opcionales pero recomendados.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg me-3">
+                                    <i class="fas fa-save me-2"></i>Guardar Enfermera
+                                </button>
+                                <a href="{{ url_for('enfermeras') }}" class="btn btn-outline-secondary btn-lg">
+                                    <i class="fas fa-times me-2"></i>Cancelar
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const especialidadSelect = document.getElementById('especialidad');
+    const otraEspecialidadDiv = document.getElementById('otraEspecialidadDiv');
+    const otraEspecialidadInput = document.getElementById('otra_especialidad');
+
+    // Mostrar/ocultar campo de otra especialidad
+    especialidadSelect.addEventListener('change', function() {
+        if (this.value === 'Otra') {
+            otraEspecialidadDiv.style.display = 'block';
+            otraEspecialidadInput.required = true;
+        } else {
+            otraEspecialidadDiv.style.display = 'none';
+            otraEspecialidadInput.required = false;
+            otraEspecialidadInput.value = '';
+        }
+    });
+
+    // Validación del formulario
+    const form = document.getElementById('enfermeraForm');
+    form.addEventListener('submit', function(e) {
+        const dni = document.getElementById('dni').value;
+        const nombre = document.getElementById('nombre').value;
+        const apellido = document.getElementById('apellido').value;
+
+        // Validar DNI
+        if (!/^\d{8}$/.test(dni)) {
+            e.preventDefault();
+            alert('El DNI debe tener exactamente 8 dígitos numéricos');
+            document.getElementById('dni').focus();
+            return;
+        }
+
+        // Validar nombre y apellido
+        if (nombre.trim().length < 2) {
+            e.preventDefault();
+            alert('El nombre debe tener al menos 2 caracteres');
+            document.getElementById('nombre').focus();
+            return;
+        }
+
+        if (apellido.trim().length < 2) {
+            e.preventDefault();
+            alert('El apellido debe tener al menos 2 caracteres');
+            document.getElementById('apellido').focus();
+            return;
+        }
+
+        // Si se seleccionó "Otra" especialidad, validar que se especifique
+        if (especialidadSelect.value === 'Otra' && otraEspecialidadInput.value.trim() === '') {
+            e.preventDefault();
+            alert('Debe especificar la especialidad');
+            otraEspecialidadInput.focus();
+            return;
+        }
+    });
+
+    // Auto-resize para campos de texto
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    });
+});
+</script>
+{% endblock %}

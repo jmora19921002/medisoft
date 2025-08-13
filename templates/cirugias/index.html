@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Cirugías</h2>
+    <a href="{{ url_for('nueva_cirugia') }}" class="btn btn-primary mb-3">Nueva Cirugía</a>
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Paciente</th>
+                <th>Médico</th>
+                <th>Enfermera</th>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Duración (horas)</th>
+                <th>Observaciones</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cirugia in cirugias %}
+            <tr>
+                <td>{{ cirugia.id }}</td>
+                <td>{{ cirugia.paciente.nombre }} {{ cirugia.paciente.apellido }}</td>
+                <td>{{ cirugia.medico.nombre }} {{ cirugia.medico.apellido }}</td>
+                <td>{{ cirugia.enfermera.nombre }} {{ cirugia.enfermera.apellido }}</td>
+                <td>{{ cirugia.fecha_cirugia.strftime('%d/%m/%Y %H:%M') if cirugia.fecha_cirugia else '' }}</td>
+                <td>{{ cirugia.tipo_cirugia }}</td>
+                <td>{{ cirugia.duracion_horas }}</td>
+                <td>{{ cirugia.observaciones }}</td>
+                <td>
+                    <a href="{{ url_for('editar_cirugia', id=cirugia.id) }}" class="btn btn-sm btn-warning">Editar</a>
+                    <form action="{{ url_for('eliminar_cirugia', id=cirugia.id) }}" method="post" style="display:inline-block;" onsubmit="return confirm('¿Seguro que desea eliminar esta cirugía?');">
+                        <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                    </form>
+                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#procesarModal{{ cirugia.id }}">
+                        Procesar
+                    </button>
+                    <!-- Modal Procesar Cirugía -->
+                    <div class="modal fade" id="procesarModal{{ cirugia.id }}" tabindex="-1" aria-labelledby="procesarModalLabel{{ cirugia.id }}" aria-hidden="true">
+                      <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                          <form method="post" action="{{ url_for('procesar_cirugia', id=cirugia.id) }}">
+                            <div class="modal-header">
+                              <h5 class="modal-title" id="procesarModalLabel{{ cirugia.id }}">Procesar Cirugía #{{ cirugia.id }}</h5>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body">
+                              <div class="mb-3">
+                                <label class="form-label">Medicamentos aplicados</label>
+                                <select class="form-select" name="medicamentos[]" multiple>
+                                  {% for medicamento in medicamentos %}
+                                    <option value="{{ medicamento.id }}">{{ medicamento.nombre }}</option>
+                                  {% endfor %}
+                                </select>
+                                <small class="form-text text-muted">Mantén Ctrl o Shift para seleccionar varios. (Puedes agregar dosis en la edición avanzada)</small>
+                              </div>
+                              <div class="mb-3">
+                                <label class="form-label">Insumos usados</label>
+                                <select class="form-select" name="insumos[]" multiple>
+                                  {% for insumo in insumos %}
+                                    <option value="{{ insumo.id }}">{{ insumo.nombre }}</option>
+                                  {% endfor %}
+                                </select>
+                                <small class="form-text text-muted">Mantén Ctrl o Shift para seleccionar varios. (Puedes agregar cantidad en la edición avanzada)</small>
+                              </div>
+                              <div class="mb-3">
+                                <label class="form-label">Médicos participantes (además del principal)</label>
+                                <select class="form-select" name="medicos_participantes[]" multiple>
+                                  {% for medico in medicos %}
+                                    <option value="{{ medico.id }}">Dr. {{ medico.apellido }}, {{ medico.nombre }}</option>
+                                  {% endfor %}
+                                </select>
+                                <small class="form-text text-muted">Selecciona los médicos que participaron.</small>
+                              </div>
+                              <div class="mb-3">
+                                <label class="form-label">¿Cómo salió el paciente de la operación?</label>
+                                <textarea class="form-control" name="resultado_operacion" rows="2" required></textarea>
+                              </div>
+                              <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" value="1" id="hospitalizarCheck{{ cirugia.id }}" name="hospitalizar">
+                                <label class="form-check-label" for="hospitalizarCheck{{ cirugia.id }}">
+                                  ¿Hospitalizar paciente después de la cirugía?
+                                </label>
+                              </div>
+                              <div class="mb-3" id="diasHospitalizarDiv{{ cirugia.id }}" style="display:none;">
+                                <label class="form-label">Días a hospitalizar</label>
+                                <input type="number" class="form-control" name="dias_hospitalizar" min="1" value="1">
+                              </div>
+                              <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                  var check = document.getElementById('hospitalizarCheck{{ cirugia.id }}');
+                                  var div = document.getElementById('diasHospitalizarDiv{{ cirugia.id }}');
+                                  if(check && div) {
+                                    check.addEventListener('change', function() {
+                                      div.style.display = this.checked ? 'block' : 'none';
+                                    });
+                                  }
+                                });
+                              </script>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                              <button type="submit" class="btn btn-success">Guardar</button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

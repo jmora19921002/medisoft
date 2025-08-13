@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Editar Hospitalización</h2>
+    <form method="post">
+        <div class="mb-3">
+            <label for="paciente_id" class="form-label">Paciente</label>
+            <select class="form-select" id="paciente_id" name="paciente_id" required>
+                {% for paciente in pacientes %}
+                <option value="{{ paciente.id }}" {% if paciente.id == hospitalizacion.paciente_id %}selected{% endif %}>{{ paciente.nombre }} {{ paciente.apellido }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="medico_id" class="form-label">Médico Tratante</label>
+            <select class="form-select" id="medico_id" name="medico_id" required>
+                {% for medico in medicos %}
+                <option value="{{ medico.id }}" {% if medico.id == hospitalizacion.medico_id %}selected{% endif %}>{{ medico.nombre }} {{ medico.apellido }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="enfermera_id" class="form-label">Enfermera</label>
+            <select class="form-select" id="enfermera_id" name="enfermera_id" required>
+                {% for enfermera in enfermeras %}
+                <option value="{{ enfermera.id }}" {% if enfermera.id == hospitalizacion.enfermera_id %}selected{% endif %}>{{ enfermera.nombre }} {{ enfermera.apellido }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="dias_hospitalizado" class="form-label">Días Hospitalizado</label>
+            <input type="number" class="form-control" id="dias_hospitalizado" name="dias_hospitalizado" min="1" value="{{ hospitalizacion.dias_hospitalizado }}" required>
+        </div>
+        <!-- Evoluciones dinámicas -->
+        <div class="mb-3">
+            <label class="form-label">Evoluciones</label>
+            <div id="evoluciones-list">
+                {% set evoluciones = hospitalizacion.observaciones | from_json if hospitalizacion.observaciones and hospitalizacion.observaciones.strip().startswith('[') else [] %}
+                {% for evo in evoluciones %}
+                <div class="card mb-2 evolucion-item">
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <label class="form-label">Fecha</label>
+                            <input type="datetime-local" class="form-control" name="evolucion_fecha[]" value="{{ evo.fecha }}" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Medicamentos</label>
+                            <input type="text" class="form-control" name="evolucion_medicamentos[]" value="{{ evo.medicamentos }}" placeholder="Ej: Paracetamol 500mg, Ibuprofeno 400mg">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Insumos</label>
+                            <input type="text" class="form-control" name="evolucion_insumos[]" value="{{ evo.insumos }}" placeholder="Ej: Suero fisiológico, Gasas">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Evaluación</label>
+                            <textarea class="form-control" name="evolucion_evaluacion[]" rows="2">{{ evo.evaluacion }}</textarea>
+                        </div>
+                        <button type="button" class="btn btn-danger btn-sm remove-evolucion">Eliminar</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="btn btn-success btn-sm" id="add-evolucion">Agregar Evolución</button>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        <a href="{{ url_for('hospitalizaciones') }}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+<script>
+// Plantilla de evolución vacía
+const evolucionTemplate = `
+<div class=\"card mb-2 evolucion-item\">\n  <div class=\"card-body\">\n    <div class=\"mb-2\">\n      <label class=\"form-label\">Fecha</label>\n      <input type=\"datetime-local\" class=\"form-control\" name=\"evolucion_fecha[]\" required>\n    </div>\n    <div class=\"mb-2\">\n      <label class=\"form-label\">Medicamentos</label>\n      <input type=\"text\" class=\"form-control\" name=\"evolucion_medicamentos[]\" placeholder=\"Ej: Paracetamol 500mg, Ibuprofeno 400mg\">\n    </div>\n    <div class=\"mb-2\">\n      <label class=\"form-label\">Insumos</label>\n      <input type=\"text\" class=\"form-control\" name=\"evolucion_insumos[]\" placeholder=\"Ej: Suero fisiológico, Gasas\">\n    </div>\n    <div class=\"mb-2\">\n      <label class=\"form-label\">Evaluación</label>\n      <textarea class=\"form-control\" name=\"evolucion_evaluacion[]\" rows=\"2\"></textarea>\n    </div>\n    <button type=\"button\" class=\"btn btn-danger btn-sm remove-evolucion\">Eliminar</button>\n  </div>\n</div>\n`;
+
+document.getElementById('add-evolucion').addEventListener('click', function() {
+    document.getElementById('evoluciones-list').insertAdjacentHTML('beforeend', evolucionTemplate);
+});
+document.getElementById('evoluciones-list').addEventListener('click', function(e) {
+    if (e.target.classList.contains('remove-evolucion')) {
+        e.target.closest('.evolucion-item').remove();
+    }
+});
+</script>
+{% endblock %}

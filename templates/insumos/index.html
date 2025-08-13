@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}Insumos - Sistema Médico{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="fas fa-boxes me-2"></i>Gestión de Insumos
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{{ url_for('nuevo_insumo') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nuevo Insumo
+            </a>
+        </div>
+    </div>
+
+    <!-- Alertas de stock bajo -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-warning" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Stock Bajo:</strong> Hay 3 insumos con stock por debajo del mínimo recomendado.
+                <a href="#" class="alert-link">Ver detalles</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros y búsqueda -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="searchInput" placeholder="Buscar insumos...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="filterStock">
+                        <option value="">Todos los niveles</option>
+                        <option value="bajo">Stock Bajo</option>
+                        <option value="normal">Stock Normal</option>
+                        <option value="alto">Stock Alto</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-secondary" onclick="limpiarFiltros()">
+                        <i class="fas fa-times me-2"></i>Limpiar Filtros
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de insumos -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list me-2"></i>Lista de Insumos
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover" id="insumosTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Stock</th>
+                            <th>Stock Mínimo</th>
+                            <th>Precio Unitario</th>
+                            <th>Estado</th>
+                            <th>Fecha Registro</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for insumo in insumos %}
+                        <tr>
+                            <td><strong>{{ insumo.codigo }}</strong></td>
+                            <td>{{ insumo.nombre }}</td>
+                            <td>{{ insumo.descripcion[:50] }}{% if insumo.descripcion|length > 50 %}...{% endif %}</td>
+                            <td>
+                                <span class="badge bg-{{ 'danger' if insumo.stock <= insumo.stock_minimo else 'success' if insumo.stock > insumo.stock_minimo * 2 else 'warning' }}">
+                                    {{ insumo.stock }}
+                                </span>
+                            </td>
+                            <td>{{ insumo.stock_minimo }}</td>
+                            <td>${{ "%.2f"|format(insumo.precio_unitario) }}</td>
+                            <td>
+                                {% if insumo.stock <= insumo.stock_minimo %}
+                                    <span class="badge bg-danger">Stock Bajo</span>
+                                {% elif insumo.stock > insumo.stock_minimo * 2 %}
+                                    <span class="badge bg-success">Disponible</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Stock Medio</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ insumo.fecha_registro.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                            onclick="verInsumo({{ insumo.id }})" title="Ver">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-warning" 
+                                            onclick="editarInsumo({{ insumo.id }})" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-info" 
+                                            onclick="ajustarStock({{ insumo.id }})" title="Ajustar Stock">
+                                        <i class="fas fa-boxes"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            onclick="eliminarInsumo({{ insumo.id }})" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted">
+                                <i class="fas fa-inbox fa-2x mb-2"></i><br>
+                                No hay insumos registrados
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver insumo -->
+<div class="modal fade" id="verInsumoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles del Insumo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="verInsumoBody">
+                <!-- Contenido dinámico -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ajustar stock -->
+<div class="modal fade" id="ajustarStockModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajustar Stock</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="ajustarStockForm">
+                    <div class="mb-3">
+                        <label for="tipoAjuste" class="form-label">Tipo de Ajuste</label>
+                        <select class="form-select" id="tipoAjuste" required>
+                            <option value="">Seleccione...</option>
+                            <option value="entrada">Entrada de Stock</option>
+                            <option value="salida">Salida de Stock</option>
+                            <option value="ajuste">Ajuste de Inventario</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cantidad" class="form-label">Cantidad</label>
+                        <input type="number" class="form-control" id="cantidad" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="motivo" class="form-label">Motivo</label>
+                        <textarea class="form-control" id="motivo" rows="3" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarAjusteStock()">Guardar Ajuste</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Búsqueda en tiempo real
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    const searchTerm = this.value.toLowerCase();
+    const table = document.getElementById('insumosTable');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    
+    for (let row of rows) {
+        const cells = row.getElementsByTagName('td');
+        let found = false;
+        
+        for (let cell of cells) {
+            if (cell.textContent.toLowerCase().includes(searchTerm)) {
+                found = true;
+                break;
+            }
+        }
+        
+        row.style.display = found ? '' : 'none';
+    }
+});
+
+// Filtro por nivel de stock
+document.getElementById('filterStock').addEventListener('change', function() {
+    const filterValue = this.value;
+    const table = document.getElementById('insumosTable');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    
+    for (let row of rows) {
+        const stockCell = row.getElementsByTagName('td')[3];
+        const stockMinimoCell = row.getElementsByTagName('td')[4];
+        
+        if (stockCell && stockMinimoCell) {
+            const stock = parseInt(stockCell.textContent);
+            const stockMinimo = parseInt(stockMinimoCell.textContent);
+            
+            let showRow = true;
+            
+            if (filterValue === 'bajo') {
+                showRow = stock <= stockMinimo;
+            } else if (filterValue === 'normal') {
+                showRow = stock > stockMinimo && stock <= stockMinimo * 2;
+            } else if (filterValue === 'alto') {
+                showRow = stock > stockMinimo * 2;
+            }
+            
+            row.style.display = showRow ? '' : 'none';
+        }
+    }
+});
+
+function limpiarFiltros() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('filterStock').value = '';
+    
+    const table = document.getElementById('insumosTable');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    
+    for (let row of rows) {
+        row.style.display = '';
+    }
+}
+
+function verInsumo(id) {
+    // Aquí se cargarían los datos del insumo via AJAX
+    const modal = new bootstrap.Modal(document.getElementById('verInsumoModal'));
+    modal.show();
+}
+
+function editarInsumo(id) {
+    // Redirigir a la página de edición
+    window.location.href = `/insumos/${id}/editar`;
+}
+
+function ajustarStock(id) {
+    // Mostrar modal de ajuste de stock
+    const modal = new bootstrap.Modal(document.getElementById('ajustarStockModal'));
+    modal.show();
+}
+
+function guardarAjusteStock() {
+    // Aquí se enviaría la petición de ajuste via AJAX
+    alert('Ajuste de stock guardado');
+    const modal = bootstrap.Modal.getInstance(document.getElementById('ajustarStockModal'));
+    modal.hide();
+}
+
+function eliminarInsumo(id) {
+    if (confirm('¿Está seguro de que desea eliminar este insumo?')) {
+        // Aquí se enviaría la petición de eliminación via AJAX
+        alert('Insumo eliminado');
+    }
+}
+</script>
+{% endblock %}

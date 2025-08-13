@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block title %}Nueva Emergencia{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Registrar Nueva Emergencia</h2>
+    <form method="POST">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="paciente_id" class="form-label">Paciente</label>
+                <select class="form-select" name="paciente_id" id="paciente_id" required>
+                    {% for paciente in pacientes %}
+                        <option value="{{ paciente.id }}">{{ paciente.nombre }} {{ paciente.apellido }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="medico_id" class="form-label">Médico</label>
+                <select class="form-select" name="medico_id" id="medico_id" required>
+                    {% for medico in medicos %}
+                        <option value="{{ medico.id }}">{{ medico.nombre }} {{ medico.apellido }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Motivos de Emergencia</label>
+            <select class="form-select" name="motivos[]" multiple required>
+                {% for motivo in motivos_precargados %}
+                    <option value="{{ motivo }}">{{ motivo }}</option>
+                {% endfor %}
+            </select>
+            <small class="text-muted">Puedes seleccionar uno o varios motivos.</small>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Medicamentos Aplicados</label>
+            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#medicamentosModal">Seleccionar Medicamentos</button>
+            <input type="hidden" name="medicamentos_aplicados" id="medicamentos_aplicados">
+            <div id="medicamentosSeleccionados" class="mt-2"></div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Instrumentos/Insumos Utilizados</label>
+            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#insumosModal">Seleccionar Insumos</button>
+            <input type="hidden" name="instrumentos_aplicados" id="instrumentos_aplicados">
+            <div id="insumosSeleccionados" class="mt-2"></div>
+        </div>
+        <div class="mb-3">
+            <label for="tiempo_observacion" class="form-label">Tiempo de Observación</label>
+            <input type="text" class="form-control" name="tiempo_observacion" id="tiempo_observacion">
+        </div>
+        <div class="mb-3">
+            <label for="observaciones" class="form-label">Observaciones</label>
+            <textarea class="form-control" name="observaciones" id="observaciones" rows="3"></textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Enfermeras que atendieron</label>
+            <select class="form-select" name="enfermeras[]" multiple required>
+                {% for enfermera in enfermeras_list %}
+                    <option value="{{ enfermera.id }}">{{ enfermera.nombre }} {{ enfermera.apellido }}</option>
+                {% endfor %}
+            </select>
+            <small class="text-muted">Puedes seleccionar una o varias enfermeras.</small>
+        </div>
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" name="hospitalizar" id="hospitalizar">
+            <label class="form-check-label" for="hospitalizar">¿Paciente amerita hospitalización?</label>
+        </div>
+        <button type="submit" class="btn btn-success">Registrar Emergencia</button>
+    </form>
+</div>
+
+<!-- Modal Medicamentos -->
+<div class="modal fade" id="medicamentosModal" tabindex="-1" aria-labelledby="medicamentosModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="medicamentosModalLabel">Seleccionar Medicamentos</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="list-group">
+          {% for medicamento in medicamentos_list %}
+            <label class="list-group-item">
+              <input class="form-check-input me-1" type="checkbox" value="{{ medicamento.nombre }}" name="medicamento_check">
+              {{ medicamento.nombre }}
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="guardarMedicamentos" data-bs-dismiss="modal">Guardar selección</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Insumos -->
+<div class="modal fade" id="insumosModal" tabindex="-1" aria-labelledby="insumosModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="insumosModalLabel">Seleccionar Insumos</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="list-group">
+          {% for insumo in insumos_list %}
+            <label class="list-group-item">
+              <input class="form-check-input me-1" type="checkbox" value="{{ insumo.nombre }}" name="insumo_check">
+              {{ insumo.nombre }}
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="guardarInsumos" data-bs-dismiss="modal">Guardar selección</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Guardar selección de medicamentos
+const guardarMedicamentosBtn = document.getElementById('guardarMedicamentos');
+if (guardarMedicamentosBtn) {
+    guardarMedicamentosBtn.onclick = function() {
+        let seleccionados = [];
+        document.querySelectorAll('input[name="medicamento_check"]:checked').forEach(function(el) {
+            seleccionados.push(el.value);
+        });
+        document.getElementById('medicamentos_aplicados').value = seleccionados.join(', ');
+        document.getElementById('medicamentosSeleccionados').innerText = seleccionados.join(', ');
+    };
+}
+// Guardar selección de insumos
+const guardarInsumosBtn = document.getElementById('guardarInsumos');
+if (guardarInsumosBtn) {
+    guardarInsumosBtn.onclick = function() {
+        let seleccionados = [];
+        document.querySelectorAll('input[name="insumo_check"]:checked').forEach(function(el) {
+            seleccionados.push(el.value);
+        });
+        document.getElementById('instrumentos_aplicados').value = seleccionados.join(', ');
+        document.getElementById('insumosSeleccionados').innerText = seleccionados.join(', ');
+    };
+}
+</script>
+{% endblock %}

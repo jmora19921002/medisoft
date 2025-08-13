@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Emergencia - Medisoft{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0 text-gray-800">
+                    <i class="fas fa-edit text-primary me-2"></i>
+                    Editar Emergencia #{{ emergencia.id }}
+                </h1>
+                <a href="{{ url_for('ver_emergencia', id=emergencia.id) }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Volver
+                </a>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header py-3 bg-primary text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Información de la Emergencia
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="emergenciaForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="paciente_id" class="form-label fw-bold">
+                                        <i class="fas fa-user me-1"></i> Paciente <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="paciente_id" name="paciente_id" required>
+                                        <option value="">Seleccione un paciente</option>
+                                        {% for paciente in pacientes %}
+                                            <option value="{{ paciente.id }}" 
+                                                {% if paciente.id == emergencia.paciente_id %}selected{% endif %}>
+                                                {{ paciente.dni }} - {{ paciente.nombre }} {{ paciente.apellido }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="medico_id" class="form-label fw-bold">
+                                        <i class="fas fa-user-md me-1"></i> Médico Atendiente <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="medico_id" name="medico_id" required>
+                                        <option value="">Seleccione un médico</option>
+                                        {% for medico in medicos %}
+                                            <option value="{{ medico.id }}" 
+                                                {% if medico.id == emergencia.medico_id %}selected{% endif %}>
+                                                {{ medico.especialidad }} - {{ medico.nombre }} {{ medico.apellido }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="tiempo_observacion" class="form-label fw-bold">
+                                        <i class="fas fa-clock me-1"></i> Tiempo de Observación
+                                    </label>
+                                    <input type="text" class="form-control" id="tiempo_observacion" 
+                                           name="tiempo_observacion" 
+                                           value="{{ emergencia.tiempo_observacion or '' }}"
+                                           placeholder="Ej: 2 horas, 30 minutos">
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="fecha_emergencia" class="form-label fw-bold">
+                                        <i class="fas fa-calendar me-1"></i> Fecha y Hora de Emergencia
+                                    </label>
+                                    <input type="datetime-local" class="form-control" id="fecha_emergencia" 
+                                           name="fecha_emergencia" 
+                                           value="{{ emergencia.fecha_emergencia.strftime('%Y-%m-%dT%H:%M') if emergencia.fecha_emergencia else '' }}"
+                                           required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-check-circle me-1"></i> Tratamiento Aplicado
+                                    </label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="tratamiento_aplicado" 
+                                               name="tratamiento_aplicado" 
+                                               {% if emergencia.tratamiento_aplicado %}checked{% endif %}>
+                                        <label class="form-check-label" for="tratamiento_aplicado">
+                                            Se aplicó tratamiento médico
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="motivo" class="form-label fw-bold">
+                                <i class="fas fa-exclamation-triangle me-1"></i> Motivo de la Emergencia <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" id="motivo" name="motivo" rows="3" 
+                                      placeholder="Describa el motivo de la emergencia" required>{{ emergencia.motivo or '' }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="medicamentos_aplicados" class="form-label fw-bold">
+                                        <i class="fas fa-pills me-1"></i> Medicamentos Aplicados
+                                    </label>
+                                    <textarea class="form-control" id="medicamentos_aplicados" 
+                                              name="medicamentos_aplicados" rows="4"
+                                              placeholder="Liste los medicamentos aplicados (dosis, vía, horario)">{{ emergencia.medicamentos_aplicados or '' }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="instrumentos_aplicados" class="form-label fw-bold">
+                                        <i class="fas fa-tools me-1"></i> Instrumentos Utilizados
+                                    </label>
+                                    <textarea class="form-control" id="instrumentos_aplicados" 
+                                              name="instrumentos_aplicados" rows="4"
+                                              placeholder="Liste los instrumentos o equipos utilizados">{{ emergencia.instrumentos_aplicados or '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="observaciones" class="form-label fw-bold">
+                                <i class="fas fa-notes-medical me-1"></i> Observaciones Adicionales
+                            </label>
+                            <textarea class="form-control" id="observaciones" name="observaciones" rows="4"
+                                      placeholder="Observaciones adicionales sobre la emergencia y su manejo">{{ emergencia.observaciones or '' }}</textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('ver_emergencia', id=emergencia.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-resize textareas
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+        
+        // Trigger initial resize
+        textarea.dispatchEvent(new Event('input'));
+    });
+
+    // Form validation
+    const form = document.getElementById('emergenciaForm');
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('Por favor, complete todos los campos obligatorios.');
+        }
+    });
+
+    // Remove validation styling on input
+    const inputs = form.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+        });
+    });
+});
+</script>
+{% endblock %}

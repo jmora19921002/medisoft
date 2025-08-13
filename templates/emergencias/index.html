@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2"><i class="fas fa-ambulance me-2"></i>Emergencias Médicas</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{{ url_for('nueva_emergencia') }}" class="btn btn-danger">
+                <i class="fas fa-plus me-2"></i>Nueva Emergencia
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros y Búsqueda -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-light">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-filter me-2"></i>Filtros de Búsqueda
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('buscar_emergencias') }}" id="filtrosForm">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="searchInput" class="form-label fw-bold">Búsqueda General</label>
+                        <div class="input-group">
+                            <input type="text" id="searchInput" class="form-control" 
+                                   placeholder="Paciente, médico o motivo...">
+                            <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="filterPaciente" class="form-label fw-bold">Paciente</label>
+                        <select id="filterPaciente" class="form-select" name="paciente_id">
+                            <option value="">Todos los pacientes</option>
+                            {% for paciente in pacientes %}
+                            <option value="{{ paciente.id }}">{{ paciente.nombre }} {{ paciente.apellido }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="filterMedico" class="form-label fw-bold">Médico</label>
+                        <select id="filterMedico" class="form-select" name="medico_id">
+                            <option value="">Todos los médicos</option>
+                            {% for medico in medicos %}
+                            <option value="{{ medico.id }}">{{ medico.nombre }} {{ medico.apellido }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="filterTratamiento" class="form-label fw-bold">Tratamiento</label>
+                        <select id="filterTratamiento" class="form-select">
+                            <option value="">Todos los casos</option>
+                            <option value="con_tratamiento">Con tratamiento</option>
+                            <option value="sin_tratamiento">Sin tratamiento</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Rango de Fechas</label>
+                        <div class="row">
+                            <div class="col-6">
+                                <input type="date" class="form-control" id="fechaDesde" name="fecha_desde" 
+                                       placeholder="Desde">
+                            </div>
+                            <div class="col-6">
+                                <input type="date" class="form-control" id="fechaHasta" name="fecha_hasta" 
+                                       placeholder="Hasta">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search me-1"></i>Buscar
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="clearSearch()">
+                            <i class="fas fa-eraser me-1"></i>Limpiar Filtros
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="exportarEmergencias()">
+                            <i class="fas fa-download me-1"></i>Exportar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de Emergencias -->
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover" id="emergenciasTable">
+                    <thead class="table-danger">
+                        <tr>
+                            <th>ID</th>
+                            <th>Paciente</th>
+                            <th>Médico</th>
+                            <th>Fecha</th>
+                            <th>Motivo</th>
+                            <th>Tratamiento</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for emergencia in emergencias %}
+                        <tr>
+                            <td>{{ emergencia.id }}</td>
+                            <td>
+                                <strong>{{ emergencia.paciente.nombre }} {{ emergencia.paciente.apellido }}</strong><br>
+                                <small class="text-muted">DNI: {{ emergencia.paciente.dni }}</small>
+                            </td>
+                            <td>
+                                <strong>{{ emergencia.medico.nombre }} {{ emergencia.medico.apellido }}</strong><br>
+                                <small class="text-muted">{{ emergencia.medico.especialidad }}</small>
+                            </td>
+                            <td>
+                                {{ emergencia.fecha_emergencia.strftime('%d/%m/%Y') }}<br>
+                                <small class="text-muted">{{ emergencia.fecha_emergencia.strftime('%H:%M') }}</small>
+                            </td>
+                            <td>
+                                <div class="text-truncate" style="max-width: 200px;" title="{{ emergencia.motivo }}">
+                                    {{ emergencia.motivo }}
+                                </div>
+                            </td>
+                            <td>
+                                {% if emergencia.tratamiento_aplicado %}
+                                <span class="badge bg-success">Aplicado</span>
+                                {% else %}
+                                <span class="badge bg-warning">Pendiente</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if emergencia.tiempo_observacion %}
+                                <span class="badge bg-info">{{ emergencia.tiempo_observacion }}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Sin observación</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                            onclick="verEmergencia({{ emergencia.id }})" 
+                                            title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-warning" 
+                                            onclick="editarEmergencia({{ emergencia.id }})" 
+                                            title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            onclick="eliminarEmergencia({{ emergencia.id }})" 
+                                            title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                <i class="fas fa-ambulance fa-3x mb-3"></i>
+                                <p>No hay emergencias registradas</p>
+                                <a href="{{ url_for('nueva_emergencia') }}" class="btn btn-danger">
+                                    <i class="fas fa-plus me-2"></i>Registrar Primera Emergencia
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ emergencias|length }}</h4>
+                            <p class="mb-0">Total Emergencias</p>
+                        </div>
+                        <i class="fas fa-ambulance fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ emergencias|selectattr('tratamiento_aplicado')|list|length }}</h4>
+                            <p class="mb-0">Con Tratamiento</p>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ emergencias|rejectattr('tratamiento_aplicado')|list|length }}</h4>
+                            <p class="mb-0">Sin Tratamiento</p>
+                        </div>
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ emergencias|selectattr('tiempo_observacion')|list|length }}</h4>
+                            <p class="mb-0">En Observación</p>
+                        </div>
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas de Emergencias Recientes -->
+    {% set emergencias_recientes = emergencias|selectattr('fecha_emergencia', '>', fecha_limite)|list %}
+    {% if emergencias_recientes|length > 0 %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-danger" role="alert">
+                <h6 class="alert-heading">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Emergencias en las últimas 24 horas
+                </h6>
+                <p class="mb-0">Hay {{ emergencias_recientes|length }} emergencias que requieren atención inmediata.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal para Ver Emergencia -->
+<div class="modal fade" id="emergenciaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-ambulance me-2"></i>Detalles de la Emergencia
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="emergenciaModalBody">
+                <!-- Contenido del modal -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Búsqueda en tiempo real y filtros combinados
+function aplicarFiltros() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const pacienteId = document.getElementById('filterPaciente').value;
+    const medicoId = document.getElementById('filterMedico').value;
+    const tratamiento = document.getElementById('filterTratamiento').value;
+    
+    const rows = document.querySelectorAll('#emergenciasTable tbody tr');
+    
+    rows.forEach(row => {
+        if (row.cells.length < 8) return; // Saltar filas de "no hay datos"
+        
+        const pacienteCell = row.cells[1].textContent.toLowerCase();
+        const medicoCell = row.cells[2].textContent.toLowerCase();
+        const motivoCell = row.cells[4].textContent.toLowerCase();
+        const tratamientoCell = row.cells[5].textContent;
+        
+        let mostrar = true;
+        
+        // Filtro de búsqueda general
+        if (searchTerm && !pacienteCell.includes(searchTerm) && 
+            !medicoCell.includes(searchTerm) && !motivoCell.includes(searchTerm)) {
+            mostrar = false;
+        }
+        
+        // Filtro por paciente
+        if (pacienteId && !pacienteCell.includes(pacienteId)) {
+            mostrar = false;
+        }
+        
+        // Filtro por médico
+        if (medicoId && !medicoCell.includes(medicoId)) {
+            mostrar = false;
+        }
+        
+        // Filtro por tratamiento
+        if (tratamiento) {
+            const tieneTratamiento = tratamientoCell.includes('Aplicado');
+            if ((tratamiento === 'con_tratamiento' && !tieneTratamiento) ||
+                (tratamiento === 'sin_tratamiento' && tieneTratamiento)) {
+                mostrar = false;
+            }
+        }
+        
+        row.style.display = mostrar ? '' : 'none';
+    });
+}
+
+// Event listeners para filtros
+document.getElementById('searchInput').addEventListener('keyup', aplicarFiltros);
+document.getElementById('filterPaciente').addEventListener('change', aplicarFiltros);
+document.getElementById('filterMedico').addEventListener('change', aplicarFiltros);
+document.getElementById('filterTratamiento').addEventListener('change', aplicarFiltros);
+
+
+
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('filterPaciente').value = '';
+    document.getElementById('filterMedico').value = '';
+    document.getElementById('filterTratamiento').value = '';
+    document.getElementById('fechaDesde').value = '';
+    document.getElementById('fechaHasta').value = '';
+    
+    const rows = document.querySelectorAll('#emergenciasTable tbody tr');
+    rows.forEach(row => row.style.display = '');
+}
+
+function verEmergencia(id) {
+    // Redirigir a la página de detalles
+    window.location.href = `/emergencias/${id}`;
+}
+
+function editarEmergencia(id) {
+    // Redirigir a la página de edición
+    window.location.href = `/emergencias/${id}/editar`;
+}
+
+function eliminarEmergencia(id) {
+    if (confirm('¿Estás seguro de que quieres eliminar esta emergencia? Esta acción no se puede deshacer.')) {
+        // Crear un formulario temporal para enviar la solicitud POST
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/emergencias/${id}/eliminar`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function exportarEmergencias() {
+    // Implementar exportación a Excel o CSV
+    alert('Funcionalidad de exportación en desarrollo. Se implementará para exportar las emergencias filtradas.');
+}
+</script>
+{% endblock %}

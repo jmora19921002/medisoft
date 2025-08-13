@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Tipo de Examen - Medisoft{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-edit text-info me-2"></i>Editar Tipo de Examen</h2>
+        <a href="{{ url_for('tipos_examen') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-flask me-2"></i>Información del Tipo de Examen</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('editar_tipo_examen', id=tipo_examen.id) }}" id="formTipoExamen">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="codigo" class="form-label">Código *</label>
+                                <input type="text" class="form-control" id="codigo" name="codigo" 
+                                       value="{{ tipo_examen.codigo }}" placeholder="Ej: LAB001, RAD001" required>
+                                <small class="form-text text-muted">Código único para identificar el tipo de examen</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="nombre" class="form-label">Nombre *</label>
+                                <input type="text" class="form-control" id="nombre" name="nombre" 
+                                       value="{{ tipo_examen.nombre }}" placeholder="Ej: Análisis de Sangre Completo" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="descripcion" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="descripcion" name="descripcion" 
+                                      rows="3" placeholder="Descripción detallada del examen, qué incluye, etc.">{{ tipo_examen.descripcion or '' }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="categoria" class="form-label">Categoría</label>
+                                <select class="form-select" id="categoria" name="categoria">
+                                    <option value="">Seleccionar categoría</option>
+                                    <option value="Laboratorio" {% if tipo_examen.categoria == 'Laboratorio' %}selected{% endif %}>Laboratorio</option>
+                                    <option value="Imagenología" {% if tipo_examen.categoria == 'Imagenología' %}selected{% endif %}>Imagenología</option>
+                                    <option value="Cardiología" {% if tipo_examen.categoria == 'Cardiología' %}selected{% endif %}>Cardiología</option>
+                                    <option value="Neurología" {% if tipo_examen.categoria == 'Neurología' %}selected{% endif %}>Neurología</option>
+                                    <option value="Endoscopía" {% if tipo_examen.categoria == 'Endoscopía' %}selected{% endif %}>Endoscopía</option>
+                                    <option value="Patología" {% if tipo_examen.categoria == 'Patología' %}selected{% endif %}>Patología</option>
+                                    <option value="Otro" {% if tipo_examen.categoria and tipo_examen.categoria not in ['Laboratorio', 'Imagenología', 'Cardiología', 'Neurología', 'Endoscopía', 'Patología'] %}selected{% endif %}>
+                                        {% if tipo_examen.categoria and tipo_examen.categoria not in ['Laboratorio', 'Imagenología', 'Cardiología', 'Neurología', 'Endoscopía', 'Patología'] %}
+                                            {{ tipo_examen.categoria }}
+                                        {% else %}
+                                            Otro
+                                        {% endif %}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="precio" class="form-label">Precio *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="precio" name="precio" 
+                                           step="0.01" min="0" placeholder="0.00" value="{{ tipo_examen.precio }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="tiempo_estimado" class="form-label">Tiempo Estimado</label>
+                                <input type="text" class="form-control" id="tiempo_estimado" name="tiempo_estimado" 
+                                       value="{{ tipo_examen.tiempo_estimado or '' }}" placeholder="Ej: 30 minutos, 2 horas, 1 día">
+                                <small class="form-text text-muted">Tiempo aproximado para realizar el examen</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="preparacion_requerida" class="form-label">Preparación Requerida</label>
+                                <textarea class="form-control" id="preparacion_requerida" name="preparacion_requerida" 
+                                          rows="2" placeholder="Instrucciones de preparación para el paciente">{{ tipo_examen.preparacion_requerida or '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="activo" name="activo" 
+                                       {% if tipo_examen.activo %}checked{% endif %}>
+                                <label class="form-check-label" for="activo">
+                                    <strong>Activo</strong>
+                                </label>
+                                <small class="form-text text-muted d-block">Desmarque para desactivar este tipo de examen</small>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-info btn-lg">
+                                <i class="fas fa-save me-2"></i>Actualizar Tipo de Examen
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información del Formulario</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Consejo:</strong> Modifique solo los campos que necesiten actualización.
+                    </div>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Código único y descriptivo
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Nombre claro y comprensible
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Precio actualizado
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Categoría apropiada
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Campos Obligatorios</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled small">
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Código
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Nombre
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Precio
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="fas fa-history me-2"></i>Información del Registro</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled small">
+                        <li class="mb-2">
+                            <i class="fas fa-calendar me-2"></i>
+                            <strong>Fecha de Registro:</strong><br>
+                            <span class="text-muted">{{ tipo_examen.fecha_registro.strftime('%d/%m/%Y %H:%M') if tipo_examen.fecha_registro else 'N/A' }}</span>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-toggle-on me-2"></i>
+                            <strong>Estado Actual:</strong><br>
+                            {% if tipo_examen.activo %}
+                                <span class="badge bg-success">Activo</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactivo</span>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación del formulario
+    const form = document.getElementById('formTipoExamen');
+    form.addEventListener('submit', function(e) {
+        const codigo = document.getElementById('codigo').value.trim();
+        const nombre = document.getElementById('nombre').value.trim();
+        const precio = document.getElementById('precio').value;
+        
+        if (!codigo || !nombre || !precio) {
+            e.preventDefault();
+            alert('Por favor complete todos los campos obligatorios.');
+            return false;
+        }
+
+        if (parseFloat(precio) <= 0) {
+            e.preventDefault();
+            alert('El precio debe ser mayor a cero.');
+            return false;
+        }
+    });
+
+    // Auto-resize de textareas
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    });
+
+    // Campo personalizado para categoría
+    const categoriaSelect = document.getElementById('categoria');
+    categoriaSelect.addEventListener('change', function() {
+        if (this.value === 'Otro') {
+            const nuevaCategoria = prompt('Especifique la nueva categoría:');
+            if (nuevaCategoria && nuevaCategoria.trim()) {
+                // Verificar si la categoría ya existe
+                const opcionesExistentes = Array.from(this.options).map(opt => opt.value);
+                if (opcionesExistentes.includes(nuevaCategoria.trim())) {
+                    alert('Esta categoría ya existe. Seleccione una de la lista.');
+                    this.value = '';
+                    return;
+                }
+                
+                // Crear nueva opción
+                const nuevaOpcion = document.createElement('option');
+                nuevaOpcion.value = nuevaCategoria.trim();
+                nuevaOpcion.textContent = nuevaCategoria.trim();
+                nuevaOpcion.selected = true;
+                
+                // Insertar antes de la opción "Otro"
+                this.insertBefore(nuevaOpcion, this.lastElementChild);
+            } else {
+                this.value = '';
+            }
+        }
+    });
+
+    // Confirmar antes de desactivar
+    const activoCheckbox = document.getElementById('activo');
+    activoCheckbox.addEventListener('change', function() {
+        if (!this.checked) {
+            if (!confirm('¿Está seguro de que desea desactivar este tipo de examen? Los usuarios no podrán seleccionarlo para nuevos exámenes.')) {
+                this.checked = true;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

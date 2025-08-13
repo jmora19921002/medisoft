@@ -1,0 +1,464 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Tratamiento - Medisoft{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-edit text-warning me-2"></i>Editar Tratamiento #{{ tratamiento.id }}</h2>
+        <a href="{{ url_for('tratamientos') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Editar Tratamiento</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('editar_tratamiento', id=tratamiento.id) }}" id="formTratamiento">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="paciente_id" class="form-label">Paciente *</label>
+                                <select class="form-select" id="paciente_id" name="paciente_id" required>
+                                    <option value="">Seleccionar paciente</option>
+                                    {% for paciente in pacientes %}
+                                    <option value="{{ paciente.id }}" {% if paciente.id == tratamiento.paciente_id %}selected{% endif %}>
+                                        {{ paciente.apellido }}, {{ paciente.nombre }} - DNI: {{ paciente.dni }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="medico_id" class="form-label">Médico Prescriptor *</label>
+                                <select class="form-select" id="medico_id" name="medico_id" required>
+                                    <option value="">Seleccionar médico</option>
+                                    {% for medico in medicos %}
+                                    <option value="{{ medico.id }}" {% if medico.id == tratamiento.medico_id %}selected{% endif %}>
+                                        Dr. {{ medico.apellido }} - {{ medico.especialidad }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="enfermera_id" class="form-label">Enfermera Asignada *</label>
+                                <select class="form-select" id="enfermera_id" name="enfermera_id" required>
+                                    <option value="">Seleccionar enfermera</option>
+                                    {% for enfermera in enfermeras %}
+                                    <option value="{{ enfermera.id }}" {% if enfermera.id == tratamiento.enfermera_id %}selected{% endif %}>
+                                        {{ enfermera.apellido }}, {{ enfermera.nombre }}
+                                        {% if enfermera.especialidad %} - {{ enfermera.especialidad }}{% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="estado" class="form-label">Estado *</label>
+                                <select class="form-select" id="estado" name="estado" required>
+                                    <option value="activo" {% if tratamiento.estado == 'activo' %}selected{% endif %}>Activo</option>
+                                    <option value="completado" {% if tratamiento.estado == 'completado' %}selected{% endif %}>Completado</option>
+                                    <option value="suspendido" {% if tratamiento.estado == 'suspendido' %}selected{% endif %}>Suspendido</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="fecha_inicio" class="form-label">Fecha de Inicio *</label>
+                                <input type="datetime-local" class="form-control" id="fecha_inicio" name="fecha_inicio" 
+                                       value="{{ tratamiento.fecha_inicio.strftime('%Y-%m-%dT%H:%M') }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="fecha_fin" class="form-label">Fecha de Finalización</label>
+                                <input type="datetime-local" class="form-control" id="fecha_fin" name="fecha_fin"
+                                       {% if tratamiento.fecha_fin %}value="{{ tratamiento.fecha_fin.strftime('%Y-%m-%dT%H:%M') }}"{% endif %}>
+                                <small class="form-text text-muted">Dejar vacío si el tratamiento está en curso</small>
+                            </div>
+                        </div>
+
+                        <!-- Sección de Medicamentos -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="text-primary mb-0">
+                                    <i class="fas fa-pills me-2"></i>Medicamentos a Suministrar
+                                </h6>
+                                <button type="button" class="btn btn-success btn-sm" onclick="agregarMedicamento()">
+                                    <i class="fas fa-plus me-2"></i>Agregar Medicamento
+                                </button>
+                            </div>
+                            
+                            <div id="medicamentosContainer">
+                                <!-- Los medicamentos se agregarán dinámicamente aquí -->
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Nota:</strong> Agregue los medicamentos uno por uno. Cada medicamento puede tener su propia dosis, frecuencia, comentarios y estatus.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="instrumentos_utilizados" class="form-label">Instrumentos y Equipos</label>
+                            <textarea class="form-control" id="instrumentos_utilizados" name="instrumentos_utilizados" 
+                                      rows="3" placeholder="Liste los instrumentos, equipos o dispositivos a utilizar...">{{ tratamiento.instrumentos_utilizados or '' }}</textarea>
+                            <small class="form-text text-muted">Equipos médicos, dispositivos, etc.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="observaciones" class="form-label">Observaciones y Notas</label>
+                            <textarea class="form-control" id="observaciones" name="observaciones" 
+                                      rows="4" placeholder="Observaciones importantes, instrucciones especiales, contraindicaciones...">{{ tratamiento.observaciones or '' }}</textarea>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="fas fa-save me-2"></i>Actualizar Tratamiento
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información del Tratamiento</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Consejo:</strong> Modifique solo los campos necesarios. Los medicamentos se pueden agregar, editar o eliminar.
+                    </div>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Paciente: <strong>{{ tratamiento.paciente.apellido }}, {{ tratamiento.paciente.nombre }}</strong>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Médico: <strong>Dr. {{ tratamiento.medico.apellido }}</strong>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Enfermera: <strong>{{ tratamiento.enfermera.apellido }}, {{ tratamiento.enfermera.nombre }}</strong>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Estado actual: <strong>{{ tratamiento.estado|title }}</strong>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Campos Obligatorios</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled small">
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Paciente
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Médico
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Enfermera
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Estado
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Fecha de inicio
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template para medicamento individual -->
+<template id="medicamentoTemplate">
+    <div class="medicamento-item card mb-3 border-primary">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 text-primary">
+                <i class="fas fa-pills me-2"></i>Medicamento #<span class="numero-medicamento"></span>
+            </h6>
+            <button type="button" class="btn btn-danger btn-sm" onclick="eliminarMedicamento(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Medicamento *</label>
+                    <select class="form-select medicamento-select" name="medicamento_id[]" required>
+                        <option value="">Seleccionar medicamento</option>
+                        {% for medicamento in medicamentos %}
+                        <option value="{{ medicamento.id }}" 
+                                data-presentacion="{{ medicamento.presentacion or 'N/A' }}"
+                                data-principio="{{ medicamento.principio_activo or 'N/A' }}">
+                            {{ medicamento.nombre }} - {{ medicamento.presentacion or 'N/A' }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Dosis *</label>
+                    <input type="text" class="form-control" name="dosis[]" 
+                           placeholder="Ej: 500mg, 1 comprimido" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Frecuencia *</label>
+                    <input type="text" class="form-control" name="frecuencia[]" 
+                           placeholder="Ej: Cada 8 horas, 2 veces al día" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Forma de Suministro *</label>
+                    <select class="form-select" name="forma_suministro[]" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="Oral">Oral</option>
+                        <option value="Intravenosa">Intravenosa</option>
+                        <option value="Intramuscular">Intramuscular</option>
+                        <option value="Subcutánea">Subcutánea</option>
+                        <option value="Tópica">Tópica</option>
+                        <option value="Inhalatoria">Inhalatoria</option>
+                        <option value="Rectal">Rectal</option>
+                        <option value="Otra">Otra</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Estatus *</label>
+                    <select class="form-select" name="estatus[]" required>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="suministrado">Suministrado</option>
+                        <option value="cancelado">Cancelado</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Comentarios</label>
+                    <button type="button" class="btn btn-outline-info btn-sm w-100" 
+                            onclick="toggleComentarios(this)">
+                        <i class="fas fa-comment me-2"></i>Agregar Comentarios
+                    </button>
+                </div>
+            </div>
+            <div class="comentarios-section" style="display: none;">
+                <div class="mb-3">
+                    <label class="form-label">Comentarios del Medicamento</label>
+                    <textarea class="form-control" name="comentarios[]" rows="3" 
+                              placeholder="Instrucciones especiales, contraindicaciones, observaciones del paciente..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let medicamentoCounter = 0;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Cargar medicamentos existentes si los hay
+    cargarMedicamentosExistentes();
+    
+    // Validación del formulario
+    const form = document.getElementById('formTratamiento');
+    form.addEventListener('submit', function(e) {
+        const paciente = document.getElementById('paciente_id').value;
+        const medico = document.getElementById('medico_id').value;
+        const enfermera = document.getElementById('enfermera_id').value;
+        const estado = document.getElementById('estado').value;
+        const fechaInicio = document.getElementById('fecha_inicio').value;
+        
+        if (!paciente || !medico || !enfermera || !estado || !fechaInicio) {
+            e.preventDefault();
+            alert('Por favor complete todos los campos obligatorios.');
+            return false;
+        }
+
+        // Validar que la fecha de fin sea posterior a la de inicio si se especifica
+        const fechaFin = document.getElementById('fecha_fin');
+        if (fechaFin.value && fechaFin.value <= fechaInicio) {
+            e.preventDefault();
+            alert('La fecha de finalización debe ser posterior a la fecha de inicio.');
+            return false;
+        }
+
+        // Validar que haya al menos un medicamento
+        const medicamentos = document.querySelectorAll('.medicamento-item');
+        if (medicamentos.length === 0) {
+            e.preventDefault();
+            alert('Debe agregar al menos un medicamento al tratamiento.');
+            return false;
+        }
+
+        // Validar que todos los medicamentos tengan los campos obligatorios
+        let medicamentosValidos = true;
+        medicamentos.forEach(medicamento => {
+            const medicamentoSelect = medicamento.querySelector('select[name="medicamento_id[]"]');
+            const dosis = medicamento.querySelector('input[name="dosis[]"]');
+            const frecuencia = medicamento.querySelector('input[name="frecuencia[]"]');
+            const formaSuministro = medicamento.querySelector('select[name="forma_suministro[]"]');
+            const estatus = medicamento.querySelector('select[name="estatus[]"]');
+            
+            if (!medicamentoSelect.value || !dosis.value || !frecuencia.value || 
+                !formaSuministro.value || !estatus.value) {
+                medicamentosValidos = false;
+            }
+        });
+
+        if (!medicamentosValidos) {
+            e.preventDefault();
+            alert('Por favor complete todos los campos obligatorios de los medicamentos.');
+            return false;
+        }
+    });
+
+    // Auto-resize de textareas
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    });
+
+    // Actualizar fecha mínima de fin cuando cambie la fecha de inicio
+    const fechaInicio = document.getElementById('fecha_inicio');
+    const fechaFin = document.getElementById('fecha_fin');
+    fechaInicio.addEventListener('change', function() {
+        if (fechaFin.value && fechaFin.value <= this.value) {
+            fechaFin.value = '';
+        }
+        fechaFin.min = this.value;
+    });
+});
+
+function cargarMedicamentosExistentes() {
+    {% if tratamiento.medicamentos_suministrados %}
+        {% set medicamentos_existentes = tratamiento.medicamentos_suministrados|from_json %}
+        {% if medicamentos_existentes %}
+            {% for medicamento in medicamentos_existentes %}
+                agregarMedicamentoExistente(
+                    '{{ medicamento.id }}',
+                    '{{ medicamento.dosis }}',
+                    '{{ medicamento.frecuencia }}',
+                    '{{ medicamento.forma_suministro }}',
+                    '{{ medicamento.estatus }}',
+                    '{{ medicamento.comentarios or "" }}'
+                );
+            {% endfor %}
+        {% else %}
+            agregarMedicamento();
+        {% endif %}
+    {% else %}
+        agregarMedicamento();
+    {% endif %}
+}
+
+function agregarMedicamentoExistente(id, dosis, frecuencia, formaSuministro, estatus, comentarios) {
+    medicamentoCounter++;
+    const template = document.getElementById('medicamentoTemplate');
+    const container = document.getElementById('medicamentosContainer');
+    
+    const clone = template.content.cloneNode(true);
+    
+    // Actualizar el número del medicamento
+    clone.querySelector('.numero-medicamento').textContent = medicamentoCounter;
+    
+    // Establecer valores existentes
+    const medicamentoSelect = clone.querySelector('select[name="medicamento_id[]"]');
+    const dosisInput = clone.querySelector('input[name="dosis[]"]');
+    const frecuenciaInput = clone.querySelector('input[name="frecuencia[]"]');
+    const formaSuministroSelect = clone.querySelector('select[name="forma_suministro[]"]');
+    const estatusSelect = clone.querySelector('select[name="estatus[]"]');
+    const comentariosTextarea = clone.querySelector('textarea[name="comentarios[]"]');
+    
+    medicamentoSelect.value = id;
+    dosisInput.value = dosis;
+    frecuenciaInput.value = frecuencia;
+    formaSuministroSelect.value = formaSuministro;
+    estatusSelect.value = estatus;
+    comentariosTextarea.value = comentarios;
+    
+    // Mostrar comentarios si existen
+    if (comentarios && comentarios.trim() !== '') {
+        const comentariosSection = clone.querySelector('.comentarios-section');
+        const toggleButton = clone.querySelector('button[onclick="toggleComentarios(this)"]');
+        comentariosSection.style.display = 'block';
+        toggleButton.innerHTML = '<i class="fas fa-comment-slash me-2"></i>Ocultar Comentarios';
+        toggleButton.classList.remove('btn-outline-info');
+        toggleButton.classList.add('btn-info');
+    }
+    
+    // Agregar al contenedor
+    container.appendChild(clone);
+}
+
+function agregarMedicamento() {
+    medicamentoCounter++;
+    const template = document.getElementById('medicamentoTemplate');
+    const container = document.getElementById('medicamentosContainer');
+    
+    const clone = template.content.cloneNode(true);
+    
+    // Actualizar el número del medicamento
+    clone.querySelector('.numero-medicamento').textContent = medicamentoCounter;
+    
+    // Agregar al contenedor
+    container.appendChild(clone);
+    
+    // Hacer scroll al nuevo medicamento
+    const nuevoMedicamento = container.lastElementChild;
+    nuevoMedicamento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function eliminarMedicamento(button) {
+    const medicamentoItem = button.closest('.medicamento-item');
+    medicamentoItem.remove();
+    
+    // Renumerar los medicamentos restantes
+    const medicamentos = document.querySelectorAll('.medicamento-item');
+    medicamentos.forEach((med, index) => {
+        med.querySelector('.numero-medicamento').textContent = index + 1;
+    });
+    
+    medicamentoCounter = medicamentos.length;
+}
+
+function toggleComentarios(button) {
+    const comentariosSection = button.closest('.row').nextElementSibling;
+    const isVisible = comentariosSection.style.display !== 'none';
+    
+    if (isVisible) {
+        comentariosSection.style.display = 'none';
+        button.innerHTML = '<i class="fas fa-comment me-2"></i>Agregar Comentarios';
+        button.classList.remove('btn-info');
+        button.classList.add('btn-outline-info');
+    } else {
+        comentariosSection.style.display = 'block';
+        button.innerHTML = '<i class="fas fa-comment-slash me-2"></i>Ocultar Comentarios';
+        button.classList.remove('btn-outline-info');
+        button.classList.add('btn-info');
+    }
+}
+</script>
+{% endblock %}

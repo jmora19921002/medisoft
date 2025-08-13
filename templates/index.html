@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Sistema Médico{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Dashboard</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <span class="text-muted">Bienvenido, {{ current_user.username }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas principales -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Pacientes</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pacientes_count|default(0) }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-injured fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Médicos</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ medicos_count|default(0) }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-md fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Laboratorio</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ laboratorio_count|default(0) }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-vials fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Imagenología</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ imagenologia_count|default(0) }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-x-ray fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accesos rápidos -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>Accesos Rápidos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('nuevo_paciente') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-user-plus fa-2x mb-2"></i><br>
+                                Nuevo Paciente
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('nuevo_medico') }}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-user-md fa-2x mb-2"></i><br>
+                                Nuevo Médico
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('evaluaciones_laboratorio') }}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-vials fa-2x mb-2"></i><br>
+                                Laboratorio
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('evaluaciones_imagenologia') }}" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-x-ray fa-2x mb-2"></i><br>
+                                Imagenología
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actividad reciente -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clock me-2"></i>Actividad Reciente
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Nuevo paciente registrado</h6>
+                                <small class="text-muted">Juan Pérez - DNI: 12345678</small>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">Hace 2 horas</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Medicamento agregado</h6>
+                                <small class="text-muted">Paracetamol 500mg</small>
+                            </div>
+                            <span class="badge bg-success rounded-pill">Hace 4 horas</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Servicio actualizado</h6>
+                                <small class="text-muted">Consulta General</small>
+                            </div>
+                            <span class="badge bg-info rounded-pill">Hace 6 horas</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Estadísticas del Mes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-primary">150</h4>
+                                <p class="text-muted">Consultas</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success">$25,000</h4>
+                            <p class="text-muted">Ingresos</p>
+                        </div>
+                    </div>
+                    <div class="row text-center mt-3">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-info">45</h4>
+                                <p class="text-muted">Nuevos Pacientes</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-warning">12</h4>
+                            <p class="text-muted">Médicos Activos</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+.text-gray-300 {
+    color: #dddfeb !important;
+}
+.text-gray-800 {
+    color: #5a5c69 !important;
+}
+</style>
+{% endblock %}

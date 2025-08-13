@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Editar Usuario{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Editar Usuario</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" value="{{ usuario.email }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="rol" class="form-label">Rol</label>
+                    <select class="form-select" id="rol" name="rol" required>
+                        <option value="administrador" {% if usuario.rol == 'administrador' %}selected{% endif %}>Administrador</option>
+                        <option value="medico" {% if usuario.rol == 'medico' %}selected{% endif %}>Médico</option>
+                        <option value="enfermera" {% if usuario.rol == 'enfermera' %}selected{% endif %}>Enfermera</option>
+                        <option value="recepcion" {% if usuario.rol == 'recepcion' %}selected{% endif %}>Recepción</option>
+                        <option value="usuario" {% if usuario.rol == 'usuario' %}selected{% endif %}>Usuario</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Nueva Contraseña</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Dejar en blanco para no cambiar">
+                </div>
+                <button type="submit" class="btn btn-success">Guardar Cambios</button>
+                <a href="{{ url_for('usuarios') }}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Evaluaciones</h2>
+  <div class="list-group">
+    <a href="{{ url_for('evaluaciones_laboratorio') }}" class="list-group-item list-group-item-action">Laboratorio</a>
+    <a href="{{ url_for('evaluaciones_imagenologia') }}" class="list-group-item list-group-item-action">Imagenología</a>
+  </div>
+</div>
+{% endblock %}

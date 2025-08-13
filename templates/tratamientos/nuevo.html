@@ -1,0 +1,1152 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Tratamiento - Medisoft{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-heartbeat text-primary me-2"></i>Nuevo Tratamiento</h2>
+        <a href="{{ url_for('tratamientos') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-plus me-2"></i>Registro de Tratamiento</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('nuevo_tratamiento') }}" id="formTratamiento">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="paciente_id" class="form-label">Paciente *</label>
+                                <select class="form-select" id="paciente_id" name="paciente_id" required>
+                                    <option value="">Seleccionar paciente</option>
+                                    {% for paciente in pacientes %}
+                                    <option value="{{ paciente.id }}">
+                                        {{ paciente.apellido }}, {{ paciente.nombre }} - DNI: {{ paciente.dni }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="medico_id" class="form-label">Médico Prescriptor *</label>
+                                <select class="form-select" id="medico_id" name="medico_id" required>
+                                    <option value="">Seleccionar médico</option>
+                                    {% for medico in medicos %}
+                                    <option value="{{ medico.id }}">
+                                        Dr. {{ medico.apellido }} - {{ medico.especialidad }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="enfermera_id" class="form-label">Enfermera Asignada *</label>
+                                <select class="form-select" id="enfermera_id" name="enfermera_id" required>
+                                    <option value="">Seleccionar enfermera</option>
+                                    {% for enfermera in enfermeras %}
+                                    <option value="{{ enfermera.id }}">
+                                        {{ enfermera.apellido }}, {{ enfermera.nombre }}
+                                        {% if enfermera.especialidad %} - {{ enfermera.especialidad }}{% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="estado" class="form-label">Estado Inicial *</label>
+                                <select class="form-select" id="estado" name="estado" required>
+                                    <option value="activo">Activo</option>
+                                    <option value="suspendido">Suspendido</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="fecha_inicio" class="form-label">Fecha de Inicio *</label>
+                                <input type="datetime-local" class="form-control" id="fecha_inicio" name="fecha_inicio" 
+                                       value="{{ now }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="fecha_fin" class="form-label">Fecha de Finalización</label>
+                                <input type="datetime-local" class="form-control" id="fecha_fin" name="fecha_fin">
+                                <small class="form-text text-muted">Dejar vacío si el tratamiento está en curso</small>
+                            </div>
+                        </div>
+
+                        <!-- Sección de Medicamentos -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="text-primary mb-0">
+                                    <i class="fas fa-pills me-2"></i>Medicamentos a Suministrar
+                                </h6>
+                                <button type="button" class="btn btn-success btn-sm" onclick="abrirModalSeleccionMedicamento()">
+                                    <i class="fas fa-plus me-2"></i>Agregar Medicamento
+                                </button>
+                            </div>
+                            
+                            <!-- Treeview de medicamentos seleccionados -->
+                            <div class="card">
+                                <div class="card-body">
+                                    <div id="medicamentosTreeview">
+                                        <div class="text-muted text-center py-4" id="mensajeVacio">
+                                            <i class="fas fa-pills fa-2x mb-3"></i>
+                                            <p class="mb-0">No hay medicamentos agregados</p>
+                                            <small>Haga clic en "Agregar Medicamento" para comenzar</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Nota:</strong> Los medicamentos se muestran en un árbol organizado. Haga clic en "Agregar Medicamento" para seleccionar y configurar cada medicamento.
+                            </div>
+                        </div>
+
+                        <!-- Sección de Insumos -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="text-primary mb-0">
+                                    <i class="fas fa-tools me-2"></i>Insumos a Utilizar
+                                </h6>
+                                <button type="button" class="btn btn-info btn-sm" onclick="abrirModalSeleccionInsumo()">
+                                    <i class="fas fa-plus me-2"></i>Agregar Insumo
+                                </button>
+                            </div>
+                            
+                            <!-- Treeview de insumos seleccionados -->
+                            <div class="card">
+                                <div class="card-body">
+                                    <div id="insumosTreeview">
+                                        <div class="text-muted text-center py-4" id="mensajeVacioInsumos">
+                                            <i class="fas fa-tools fa-2x mb-3"></i>
+                                            <p class="mb-0">No hay insumos agregados</p>
+                                            <small>Haga clic en "Agregar Insumo" para comenzar</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Nota:</strong> Los insumos se muestran en un árbol organizado. Haga clic en "Agregar Insumo" para seleccionar y configurar cada insumo.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="observaciones" class="form-label">Observaciones y Notas</label>
+                            <textarea class="form-control" id="observaciones" name="observaciones" 
+                                      rows="4" placeholder="Observaciones importantes, instrucciones especiales, contraindicaciones..."></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Registrar Tratamiento
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información del Tratamiento</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Consejo:</strong> Complete todos los campos con la mayor precisión posible.
+                    </div>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Seleccione paciente, médico y enfermera
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Defina fechas de inicio y fin
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Agregue medicamentos con detalles específicos
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Incluya observaciones relevantes
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Campos Obligatorios</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled small">
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Paciente
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Médico
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Enfermera
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Estado
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-asterisk text-danger me-1"></i>
+                            Fecha de inicio
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para selección de medicamentos -->
+<div class="modal fade" id="modalSeleccionMedicamento" tabindex="-1" aria-labelledby="modalSeleccionMedicamentoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalSeleccionMedicamentoLabel">
+                    <i class="fas fa-pills me-2"></i>Seleccionar Medicamento
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="buscarMedicamento" class="form-label">Buscar Medicamento</label>
+                    <input type="text" class="form-control" id="buscarMedicamento" 
+                           placeholder="Escriba para filtrar medicamentos...">
+                </div>
+                
+                <div class="table-responsive" style="max-height: 400px;">
+                    <table class="table table-hover">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>Medicamento</th>
+                                <th>Presentación</th>
+                                <th>Principio Activo</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaMedicamentos">
+                            {% for medicamento in medicamentos %}
+                            <tr class="medicamento-row" data-id="{{ medicamento.id }}" 
+                                data-nombre="{{ medicamento.nombre }}"
+                                data-presentacion="{{ medicamento.presentacion or 'N/A' }}"
+                                data-principio="{{ medicamento.principio_activo or 'N/A' }}">
+                                <td>
+                                    <strong>{{ medicamento.nombre }}</strong>
+                                </td>
+                                <td>{{ medicamento.presentacion or 'N/A' }}</td>
+                                <td>{{ medicamento.principio_activo or 'N/A' }}</td>
+                                <td>
+                                    <button type="button" class="btn btn-success btn-sm" 
+                                            onclick="seleccionarMedicamento('{{ medicamento.id }}', '{{ medicamento.nombre }}')">
+                                        <i class="fas fa-check me-1"></i>Seleccionar
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para configuración de medicamento -->
+<div class="modal fade" id="modalConfiguracionMedicamento" tabindex="-1" aria-labelledby="modalConfiguracionMedicamentoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalConfiguracionMedicamentoLabel">
+                    <i class="fas fa-cog me-2"></i>Configurar Medicamento
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formConfiguracionMedicamento">
+                    <input type="hidden" id="medicamentoIdSeleccionado" name="medicamento_id">
+                    <input type="hidden" id="medicamentoNombreSeleccionado" name="medicamento_nombre">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Medicamento Seleccionado</label>
+                        <div class="form-control-plaintext" id="nombreMedicamentoMostrado"></div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="dosisMedicamento" class="form-label">Dosis *</label>
+                            <input type="text" class="form-control" id="dosisMedicamento" name="dosis" 
+                                   placeholder="Ej: 500mg, 1 comprimido" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="frecuenciaMedicamento" class="form-label">Frecuencia *</label>
+                            <input type="text" class="form-control" id="frecuenciaMedicamento" name="frecuencia" 
+                                   placeholder="Ej: Cada 8 horas, 2 veces al día" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="formaSuministroMedicamento" class="form-label">Forma de Suministro *</label>
+                            <select class="form-select" id="formaSuministroMedicamento" name="forma_suministro" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="Oral">Oral</option>
+                                <option value="Intravenosa">Intravenosa</option>
+                                <option value="Intramuscular">Intramuscular</option>
+                                <option value="Subcutánea">Subcutánea</option>
+                                <option value="Tópica">Tópica</option>
+                                <option value="Inhalatoria">Inhalatoria</option>
+                                <option value="Rectal">Rectal</option>
+                                <option value="Otra">Otra</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="estatusMedicamento" class="form-label">Estatus *</label>
+                            <select class="form-select" id="estatusMedicamento" name="estatus" required>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="suministrado">Suministrado</option>
+                                <option value="cancelado">Cancelado</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="comentariosMedicamento" class="form-label">Comentarios</label>
+                        <textarea class="form-control" id="comentariosMedicamento" name="comentarios" rows="3" 
+                                  placeholder="Instrucciones especiales, contraindicaciones, observaciones del paciente..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="agregarMedicamentoConfigurado()">
+                    <i class="fas fa-save me-2"></i>Agregar al Tratamiento
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para selección de insumos -->
+<div class="modal fade" id="modalSeleccionInsumo" tabindex="-1" aria-labelledby="modalSeleccionInsumoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="modalSeleccionInsumoLabel">
+                    <i class="fas fa-tools me-2"></i>Seleccionar Insumo
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="buscarInsumo" class="form-label">Buscar Insumo</label>
+                    <input type="text" class="form-control" id="buscarInsumo" 
+                           placeholder="Escriba para filtrar insumos...">
+                </div>
+                
+                <div class="table-responsive" style="max-height: 400px;">
+                    <table class="table table-hover">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>Insumo</th>
+                                <th>Descripción</th>
+                                <th>Stock</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaInsumos">
+                            {% for insumo in insumos %}
+                            <tr class="insumo-row" data-id="{{ insumo.id }}" 
+                                data-nombre="{{ insumo.nombre }}"
+                                data-descripcion="{{ insumo.descripcion or 'N/A' }}"
+                                data-stock="{{ insumo.stock }}">
+                                <td>
+                                    <strong>{{ insumo.nombre }}</strong>
+                                </td>
+                                <td>{{ insumo.descripcion or 'N/A' }}</td>
+                                <td>
+                                    <span class="badge {% if insumo.stock > insumo.stock_minimo %}bg-success{% elif insumo.stock > 0 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ insumo.stock }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-info btn-sm" 
+                                            onclick="seleccionarInsumo('{{ insumo.id }}', '{{ insumo.nombre }}')">
+                                        <i class="fas fa-check me-1"></i>Seleccionar
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para configuración de insumo -->
+<div class="modal fade" id="modalConfiguracionInsumo" tabindex="-1" aria-labelledby="modalConfiguracionInsumoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="modalConfiguracionInsumoLabel">
+                    <i class="fas fa-cog me-2"></i>Configurar Insumo
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formConfiguracionInsumo">
+                    <input type="hidden" id="insumoIdSeleccionado" name="insumo_id">
+                    <input type="hidden" id="insumoNombreSeleccionado" name="insumo_nombre">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Insumo Seleccionado</label>
+                        <div class="form-control-plaintext" id="nombreInsumoMostrado"></div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="cantidadInsumo" class="form-label">Cantidad *</label>
+                            <input type="number" class="form-control" id="cantidadInsumo" name="cantidad" 
+                                   min="1" placeholder="Ej: 5" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="unidadInsumo" class="form-label">Unidad *</label>
+                            <select class="form-select" id="unidadInsumo" name="unidad" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="unidad">Unidad</option>
+                                <option value="paquete">Paquete</option>
+                                <option value="caja">Caja</option>
+                                <option value="rollo">Rollo</option>
+                                <option value="metro">Metro</option>
+                                <option value="litro">Litro</option>
+                                <option value="ml">Mililitro</option>
+                                <option value="gramo">Gramo</option>
+                                <option value="mg">Miligramo</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="comentariosInsumo" class="form-label">Comentarios</label>
+                        <textarea class="form-control" id="comentariosInsumo" name="comentarios" rows="3" 
+                                  placeholder="Instrucciones especiales, observaciones de uso..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-info" onclick="agregarInsumoConfigurado()">
+                    <i class="fas fa-save me-2"></i>Agregar al Tratamiento
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let medicamentosSeleccionados = [];
+let medicamentoCounter = 0;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Establecer fecha y hora actual por defecto
+    const now = new Date();
+    const fechaInicio = document.getElementById('fecha_inicio');
+    const fechaFin = document.getElementById('fecha_fin');
+    
+    // Formatear fecha para datetime-local
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    const fechaActual = `${year}-${month}-${day}T${hours}:${minutes}`;
+    fechaInicio.value = fechaActual;
+
+    // Configurar búsqueda de medicamentos
+    const buscarMedicamento = document.getElementById('buscarMedicamento');
+    if (buscarMedicamento) {
+        buscarMedicamento.addEventListener('input', function() {
+            filtrarMedicamentos(this.value);
+        });
+    }
+
+    // Configurar búsqueda de insumos
+    const buscarInsumo = document.getElementById('buscarInsumo');
+    if (buscarInsumo) {
+        buscarInsumo.addEventListener('input', function() {
+            filtrarInsumos(this.value);
+        });
+    }
+
+    // Validación del formulario
+    const form = document.getElementById('formTratamiento');
+    form.addEventListener('submit', function(e) {
+        const paciente = document.getElementById('paciente_id').value;
+        const medico = document.getElementById('medico_id').value;
+        const enfermera = document.getElementById('enfermera_id').value;
+        const estado = document.getElementById('estado').value;
+        const fechaInicio = document.getElementById('fecha_inicio').value;
+        
+        if (!paciente || !medico || !enfermera || !estado || !fechaInicio) {
+            e.preventDefault();
+            alert('Por favor complete todos los campos obligatorios.');
+            return false;
+        }
+
+        // Validar que la fecha de fin sea posterior a la de inicio si se especifica
+        if (fechaFin.value && fechaFin.value <= fechaInicio) {
+            e.preventDefault();
+            alert('La fecha de finalización debe ser posterior a la fecha de inicio.');
+            return false;
+        }
+
+        // Validar que haya al menos un medicamento
+        if (medicamentosSeleccionados.length === 0) {
+            e.preventDefault();
+            alert('Debe agregar al menos un medicamento al tratamiento.');
+            return false;
+        }
+
+        // Validar que haya al menos un insumo
+        if (insumosSeleccionados.length === 0) {
+            e.preventDefault();
+            alert('Debe agregar al menos un insumo al tratamiento.');
+            return false;
+        }
+
+        // Agregar campos ocultos para cada medicamento
+        medicamentosSeleccionados.forEach((med, index) => {
+            const medicamentoIdInput = document.createElement('input');
+            medicamentoIdInput.type = 'hidden';
+            medicamentoIdInput.name = 'medicamento_id[]';
+            medicamentoIdInput.value = med.id;
+            form.appendChild(medicamentoIdInput);
+
+            const dosisInput = document.createElement('input');
+            dosisInput.type = 'hidden';
+            dosisInput.name = 'dosis[]';
+            dosisInput.value = med.dosis;
+            form.appendChild(dosisInput);
+
+            const frecuenciaInput = document.createElement('input');
+            frecuenciaInput.type = 'hidden';
+            frecuenciaInput.name = 'frecuencia[]';
+            frecuenciaInput.value = med.frecuencia;
+            form.appendChild(frecuenciaInput);
+
+            const formaSuministroInput = document.createElement('input');
+            formaSuministroInput.type = 'hidden';
+            formaSuministroInput.name = 'forma_suministro[]';
+            formaSuministroInput.value = med.forma_suministro;
+            form.appendChild(formaSuministroInput);
+
+            const estatusInput = document.createElement('input');
+            estatusInput.type = 'hidden';
+            estatusInput.name = 'estatus[]';
+            estatusInput.value = med.estatus;
+            form.appendChild(estatusInput);
+
+            const comentariosInput = document.createElement('input');
+            comentariosInput.type = 'hidden';
+            comentariosInput.name = 'comentarios[]';
+            comentariosInput.value = med.comentarios || '';
+            form.appendChild(comentariosInput);
+        });
+
+        // Agregar campos ocultos para cada insumo
+        insumosSeleccionados.forEach((insumo, index) => {
+            const insumoIdInput = document.createElement('input');
+            insumoIdInput.type = 'hidden';
+            insumoIdInput.name = 'insumo_id[]';
+            insumoIdInput.value = insumo.id;
+            form.appendChild(insumoIdInput);
+
+            const cantidadInput = document.createElement('input');
+            cantidadInput.type = 'hidden';
+            cantidadInput.name = 'cantidad[]';
+            cantidadInput.value = insumo.cantidad;
+            form.appendChild(cantidadInput);
+
+            const unidadInput = document.createElement('input');
+            unidadInput.type = 'hidden';
+            unidadInput.name = 'unidad[]';
+            unidadInput.value = insumo.unidad;
+            form.appendChild(unidadInput);
+
+            const comentariosInsumoInput = document.createElement('input');
+            comentariosInsumoInput.type = 'hidden';
+            comentariosInsumoInput.name = 'comentarios_insumo[]';
+            comentariosInsumoInput.value = insumo.comentarios || '';
+            form.appendChild(comentariosInsumoInput);
+        });
+    });
+
+    // Auto-resize de textareas
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    });
+
+    // Actualizar fecha mínima de fin cuando cambie la fecha de inicio
+    fechaInicio.addEventListener('change', function() {
+        if (fechaFin.value && fechaFin.value <= this.value) {
+            fechaFin.value = '';
+        }
+        fechaFin.min = this.value;
+    });
+});
+
+// Función para abrir el modal de selección de medicamentos
+function abrirModalSeleccionMedicamento() {
+    const modal = new bootstrap.Modal(document.getElementById('modalSeleccionMedicamento'));
+    modal.show();
+}
+
+// Función para filtrar medicamentos en la tabla
+function filtrarMedicamentos(busqueda) {
+    const filas = document.querySelectorAll('.medicamento-row');
+    const textoBusqueda = busqueda.toLowerCase();
+    
+    filas.forEach(fila => {
+        const nombre = fila.getAttribute('data-nombre').toLowerCase();
+        const presentacion = fila.getAttribute('data-presentacion').toLowerCase();
+        const principio = fila.getAttribute('data-principio').toLowerCase();
+        
+        if (nombre.includes(textoBusqueda) || 
+            presentacion.includes(textoBusqueda) || 
+            principio.includes(textoBusqueda)) {
+            fila.style.display = '';
+        } else {
+            fila.style.display = 'none';
+        }
+    });
+}
+
+// Función para seleccionar un medicamento
+function seleccionarMedicamento(id, nombre) {
+    // Cerrar modal de selección
+    const modalSeleccion = bootstrap.Modal.getInstance(document.getElementById('modalSeleccionMedicamento'));
+    modalSeleccion.hide();
+    
+    // Configurar el modal de configuración
+    document.getElementById('medicamentoIdSeleccionado').value = id;
+    document.getElementById('medicamentoNombreSeleccionado').value = nombre;
+    document.getElementById('nombreMedicamentoMostrado').textContent = nombre;
+    
+    // Limpiar formulario de configuración
+    document.getElementById('formConfiguracionMedicamento').reset();
+    
+    // Mostrar modal de configuración
+    const modalConfiguracion = new bootstrap.Modal(document.getElementById('modalConfiguracionMedicamento'));
+    modalConfiguracion.show();
+}
+
+// Función para agregar medicamento configurado
+function agregarMedicamentoConfigurado() {
+    const form = document.getElementById('formConfiguracionMedicamento');
+    
+    // Validar formulario
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    // Obtener datos del formulario
+    const medicamento = {
+        id: document.getElementById('medicamentoIdSeleccionado').value,
+        nombre: document.getElementById('medicamentoNombreSeleccionado').value,
+        dosis: document.getElementById('dosisMedicamento').value,
+        frecuencia: document.getElementById('frecuenciaMedicamento').value,
+        forma_suministro: document.getElementById('formaSuministroMedicamento').value,
+        estatus: document.getElementById('estatusMedicamento').value,
+        comentarios: document.getElementById('comentariosMedicamento').value
+    };
+    
+    // Verificar que no esté duplicado
+    const existe = medicamentosSeleccionados.find(m => m.id === medicamento.id);
+    if (existe) {
+        alert('Este medicamento ya ha sido agregado al tratamiento.');
+        return;
+    }
+    
+    // Agregar a la lista
+    medicamentosSeleccionados.push(medicamento);
+    
+    // Actualizar treeview
+    actualizarTreeview();
+    
+    // Cerrar modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('modalConfiguracionMedicamento'));
+    modal.hide();
+    
+    // Mostrar mensaje de éxito
+    mostrarNotificacion('Medicamento agregado exitosamente', 'success');
+}
+
+// Función para actualizar el treeview
+function actualizarTreeview() {
+    const container = document.getElementById('medicamentosTreeview');
+    const mensajeVacio = document.getElementById('mensajeVacio');
+    
+    if (medicamentosSeleccionados.length === 0) {
+        container.innerHTML = `
+            <div class="text-muted text-center py-4" id="mensajeVacio">
+                <i class="fas fa-pills fa-2x mb-3"></i>
+                <p class="mb-0">No hay medicamentos agregados</p>
+                <small>Haga clic en "Agregar Medicamento" para comenzar</small>
+            </div>
+        `;
+        return;
+    }
+    
+    // Ocultar mensaje vacío
+    if (mensajeVacio) {
+        mensajeVacio.style.display = 'none';
+    }
+    
+    // Crear treeview
+    let html = '<div class="medicamentos-treeview">';
+    
+    medicamentosSeleccionados.forEach((med, index) => {
+        const estatusClass = getEstatusClass(med.estatus);
+        const estatusText = getEstatusText(med.estatus);
+        
+        html += `
+            <div class="medicamento-tree-item card mb-2 border-${estatusClass}">
+                <div class="card-header bg-${estatusClass} text-white d-flex justify-content-between align-items-center py-2">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-pills me-2"></i>
+                        <strong>${med.nombre}</strong>
+                        <span class="badge bg-light text-dark ms-2">${index + 1}</span>
+                    </div>
+                    <div class="d-flex gap-1">
+                        <button type="button" class="btn btn-outline-light btn-sm" 
+                                onclick="editarMedicamento(${index})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-light btn-sm" 
+                                onclick="eliminarMedicamento(${index})" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body py-2">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <small class="text-muted">Dosis:</small><br>
+                            <strong>${med.dosis}</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Frecuencia:</small><br>
+                            <strong>${med.frecuencia}</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Suministro:</small><br>
+                            <strong>${med.forma_suministro}</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Estatus:</small><br>
+                            <span class="badge bg-${estatusClass}">${estatusText}</span>
+                        </div>
+                    </div>
+                    ${med.comentarios ? `
+                        <div class="mt-2">
+                            <small class="text-muted">Comentarios:</small><br>
+                            <em>${med.comentarios}</em>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// Función para obtener clase CSS del estatus
+function getEstatusClass(estatus) {
+    switch(estatus) {
+        case 'pendiente': return 'warning';
+        case 'suministrado': return 'success';
+        case 'cancelado': return 'danger';
+        default: return 'secondary';
+    }
+}
+
+// Función para obtener texto del estatus
+function getEstatusText(estatus) {
+    switch(estatus) {
+        case 'pendiente': return 'Pendiente';
+        case 'suministrado': return 'Suministrado';
+        case 'cancelado': return 'Cancelado';
+        default: return estatus;
+    }
+}
+
+// Función para editar medicamento
+function editarMedicamento(index) {
+    const medicamento = medicamentosSeleccionados[index];
+    
+    // Configurar el modal de configuración con datos existentes
+    document.getElementById('medicamentoIdSeleccionado').value = medicamento.id;
+    document.getElementById('medicamentoNombreSeleccionado').value = medicamento.nombre;
+    document.getElementById('nombreMedicamentoMostrado').textContent = medicamento.nombre;
+    document.getElementById('dosisMedicamento').value = medicamento.dosis;
+    document.getElementById('frecuenciaMedicamento').value = medicamento.frecuencia;
+    document.getElementById('formaSuministroMedicamento').value = medicamento.forma_suministro;
+    document.getElementById('estatusMedicamento').value = medicamento.estatus;
+    document.getElementById('comentariosMedicamento').value = medicamento.comentarios || '';
+    
+    // Mostrar modal de configuración
+    const modalConfiguracion = new bootstrap.Modal(document.getElementById('modalConfiguracionMedicamento'));
+    modalConfiguracion.show();
+    
+    // Cambiar el botón para actualizar en lugar de agregar
+    const botonGuardar = document.querySelector('#modalConfiguracionMedicamento .btn-success');
+    botonGuardar.innerHTML = '<i class="fas fa-save me-2"></i>Actualizar Medicamento';
+    botonGuardar.onclick = function() { actualizarMedicamento(index); };
+}
+
+// Función para actualizar medicamento existente
+function actualizarMedicamento(index) {
+    const form = document.getElementById('formConfiguracionMedicamento');
+    
+    // Validar formulario
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    // Actualizar datos del medicamento
+    medicamentosSeleccionados[index] = {
+        id: document.getElementById('medicamentoIdSeleccionado').value,
+        nombre: document.getElementById('medicamentoNombreSeleccionado').value,
+        dosis: document.getElementById('dosisMedicamento').value,
+        frecuencia: document.getElementById('frecuenciaMedicamento').value,
+        forma_suministro: document.getElementById('formaSuministroMedicamento').value,
+        estatus: document.getElementById('estatusMedicamento').value,
+        comentarios: document.getElementById('comentariosMedicamento').value
+    };
+    
+    // Actualizar treeview
+    actualizarTreeview();
+    
+    // Cerrar modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('modalConfiguracionMedicamento'));
+    modal.hide();
+    
+    // Restaurar botón original
+    const botonGuardar = document.querySelector('#modalConfiguracionMedicamento .btn-success');
+    botonGuardar.innerHTML = '<i class="fas fa-save me-2"></i>Agregar al Tratamiento';
+    botonGuardar.onclick = function() { agregarMedicamentoConfigurado(); };
+    
+    // Mostrar mensaje de éxito
+    mostrarNotificacion('Medicamento actualizado exitosamente', 'success');
+}
+
+// Función para eliminar medicamento
+function eliminarMedicamento(index) {
+    if (confirm('¿Está seguro de que desea eliminar este medicamento del tratamiento?')) {
+        medicamentosSeleccionados.splice(index, 1);
+        actualizarTreeview();
+        mostrarNotificacion('Medicamento eliminado del tratamiento', 'info');
+    }
+}
+
+// Función para mostrar notificaciones
+function mostrarNotificacion(mensaje, tipo) {
+    // Crear notificación toast
+    const toastContainer = document.getElementById('toastContainer') || crearToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${tipo} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-info-circle me-2"></i>${mensaje}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    // Remover toast después de que se oculte
+    toast.addEventListener('hidden.bs.toast', function() {
+        toast.remove();
+    });
+}
+
+// Función para crear contenedor de toasts si no existe
+function crearToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container position-fixed top-0 end-0 p-3';
+    container.style.zIndex = '9999';
+    document.body.appendChild(container);
+    return container;
+}
+
+// ===== FUNCIONES PARA INSUMOS =====
+
+// Variables globales para insumos
+let insumosSeleccionados = [];
+let insumoCounter = 0;
+
+// Función para abrir el modal de selección de insumos
+function abrirModalSeleccionInsumo() {
+    const modal = new bootstrap.Modal(document.getElementById('modalSeleccionInsumo'));
+    modal.show();
+}
+
+// Función para filtrar insumos en la tabla
+function filtrarInsumos(busqueda) {
+    const filas = document.querySelectorAll('.insumo-row');
+    const textoBusqueda = busqueda.toLowerCase();
+    
+    filas.forEach(fila => {
+        const nombre = fila.getAttribute('data-nombre').toLowerCase();
+        const descripcion = fila.getAttribute('data-descripcion').toLowerCase();
+        
+        if (nombre.includes(textoBusqueda) || descripcion.includes(textoBusqueda)) {
+            fila.style.display = '';
+        } else {
+            fila.style.display = 'none';
+        }
+    });
+}
+
+// Función para seleccionar un insumo
+function seleccionarInsumo(id, nombre) {
+    // Cerrar modal de selección
+    const modalSeleccion = bootstrap.Modal.getInstance(document.getElementById('modalSeleccionInsumo'));
+    modalSeleccion.hide();
+    
+    // Configurar el modal de configuración
+    document.getElementById('insumoIdSeleccionado').value = id;
+    document.getElementById('insumoNombreSeleccionado').value = nombre;
+    document.getElementById('nombreInsumoMostrado').textContent = nombre;
+    
+    // Limpiar formulario de configuración
+    document.getElementById('formConfiguracionInsumo').reset();
+    
+    // Mostrar modal de configuración
+    const modalConfiguracion = new bootstrap.Modal(document.getElementById('modalConfiguracionInsumo'));
+    modalConfiguracion.show();
+}
+
+// Función para agregar insumo configurado
+function agregarInsumoConfigurado() {
+    const form = document.getElementById('formConfiguracionInsumo');
+    
+    // Validar formulario
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    // Obtener datos del formulario
+    const insumo = {
+        id: document.getElementById('insumoIdSeleccionado').value,
+        nombre: document.getElementById('insumoNombreSeleccionado').value,
+        cantidad: document.getElementById('cantidadInsumo').value,
+        unidad: document.getElementById('unidadInsumo').value,
+        comentarios: document.getElementById('comentariosInsumo').value
+    };
+    
+    // Verificar que no esté duplicado
+    const existe = insumosSeleccionados.find(i => i.id === insumo.id);
+    if (existe) {
+        alert('Este insumo ya ha sido agregado al tratamiento.');
+        return;
+    }
+    
+    // Agregar a la lista
+    insumosSeleccionados.push(insumo);
+    
+    // Actualizar treeview
+    actualizarTreeviewInsumos();
+    
+    // Cerrar modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('modalConfiguracionInsumo'));
+    modal.hide();
+    
+    // Mostrar mensaje de éxito
+    mostrarNotificacion('Insumo agregado exitosamente', 'success');
+}
+
+// Función para actualizar el treeview de insumos
+function actualizarTreeviewInsumos() {
+    const container = document.getElementById('insumosTreeview');
+    const mensajeVacio = document.getElementById('mensajeVacioInsumos');
+    
+    if (insumosSeleccionados.length === 0) {
+        container.innerHTML = `
+            <div class="text-muted text-center py-4" id="mensajeVacioInsumos">
+                <i class="fas fa-tools fa-2x mb-3"></i>
+                <p class="mb-0">No hay insumos agregados</p>
+                <small>Haga clic en "Agregar Insumo" para comenzar</small>
+            </div>
+        `;
+        return;
+    }
+    
+    // Ocultar mensaje vacío
+    if (mensajeVacio) {
+        mensajeVacio.style.display = 'none';
+    }
+    
+    // Crear treeview
+    let html = '<div class="insumos-treeview">';
+    
+    insumosSeleccionados.forEach((insumo, index) => {
+        html += `
+            <div class="insumo-tree-item card mb-2 border-info">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center py-2">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-tools me-2"></i>
+                        <strong>${insumo.nombre}</strong>
+                        <span class="badge bg-light text-dark ms-2">${index + 1}</span>
+                    </div>
+                    <div class="d-flex gap-1">
+                        <button type="button" class="btn btn-outline-light btn-sm" 
+                                onclick="editarInsumo(${index})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-light btn-sm" 
+                                onclick="eliminarInsumo(${index})" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body py-2">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">Cantidad:</small><br>
+                            <strong>${insumo.cantidad} ${insumo.unidad}</strong>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Comentarios:</small><br>
+                            <strong>${insumo.comentarios || 'N/A'}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// Función para editar insumo
+function editarInsumo(index) {
+    const insumo = insumosSeleccionados[index];
+    
+    // Configurar el modal de configuración con datos existentes
+    document.getElementById('insumoIdSeleccionado').value = insumo.id;
+    document.getElementById('insumoNombreSeleccionado').value = insumo.nombre;
+    document.getElementById('nombreInsumoMostrado').textContent = insumo.nombre;
+    document.getElementById('cantidadInsumo').value = insumo.cantidad;
+    document.getElementById('unidadInsumo').value = insumo.unidad;
+    document.getElementById('comentariosInsumo').value = insumo.comentarios || '';
+    
+    // Mostrar modal de configuración
+    const modalConfiguracion = new bootstrap.Modal(document.getElementById('modalConfiguracionInsumo'));
+    modalConfiguracion.show();
+    
+    // Cambiar el botón para actualizar en lugar de agregar
+    const botonGuardar = document.querySelector('#modalConfiguracionInsumo .btn-info');
+    botonGuardar.innerHTML = '<i class="fas fa-save me-2"></i>Actualizar Insumo';
+    botonGuardar.onclick = function() { actualizarInsumo(index); };
+}
+
+// Función para actualizar insumo existente
+function actualizarInsumo(index) {
+    const form = document.getElementById('formConfiguracionInsumo');
+    
+    // Validar formulario
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    // Actualizar datos del insumo
+    insumosSeleccionados[index] = {
+        id: document.getElementById('insumoIdSeleccionado').value,
+        nombre: document.getElementById('insumoNombreSeleccionado').value,
+        cantidad: document.getElementById('cantidadInsumo').value,
+        unidad: document.getElementById('unidadInsumo').value,
+        comentarios: document.getElementById('comentariosInsumo').value
+    };
+    
+    // Actualizar treeview
+    actualizarTreeviewInsumos();
+    
+    // Cerrar modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('modalConfiguracionInsumo'));
+    modal.hide();
+    
+    // Restaurar botón original
+    const botonGuardar = document.querySelector('#modalConfiguracionInsumo .btn-info');
+    botonGuardar.innerHTML = '<i class="fas fa-save me-2"></i>Agregar al Tratamiento';
+    botonGuardar.onclick = function() { agregarInsumoConfigurado(); };
+    
+    // Mostrar mensaje de éxito
+    mostrarNotificacion('Insumo actualizado exitosamente', 'success');
+}
+
+// Función para eliminar insumo
+function eliminarInsumo(index) {
+    if (confirm('¿Está seguro de que desea eliminar este insumo del tratamiento?')) {
+        insumosSeleccionados.splice(index, 1);
+        actualizarTreeviewInsumos();
+        mostrarNotificacion('Insumo eliminado del tratamiento', 'info');
+    }
+}
+</script>
+{% endblock %}
